@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  apex:
+    image: "${DOCKER_REPO}/alexghr.me:latest"
+    volumes:
+      - /data/ubuntu/certs:/etc/nginx/certs
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: eu-west-2
+        awslogs-group: alexghr.me
+        awslogs-stream-prefix: apex
+  www:
+    image: "${DOCKER_REPO}/www.alexghr.me:latest"
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: eu-west-2
+        awslogs-group: alexghr.me
+        awslogs-stream-prefix: www

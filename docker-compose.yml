@@ -2,25 +2,13 @@ version: '3'
 
 services:
   apex:
-    image: "${DOCKER_REPO}/alexghr.me:latest"
+    image: alexghr.me:latest
     ports:
       - 80:80
       - 443:443
     volumes:
-      - /data/ubuntu/certs:/etc/nginx/certs
+      - ./certs:/etc/nginx/certs
     links:
       - www
-    logging:
-      driver: awslogs
-      options:
-        awslogs-region: eu-west-2
-        awslogs-group: alexghr.me
-        awslogs-stream-prefix: apex
   www:
-    image: "${DOCKER_REPO}/www.alexghr.me:latest"
-    logging:
-      driver: awslogs
-      options:
-        awslogs-region: eu-west-2
-        awslogs-group: alexghr.me
-        awslogs-stream-prefix: www
+    image: www.alexghr.me:latest
