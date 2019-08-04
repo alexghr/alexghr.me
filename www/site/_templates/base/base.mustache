@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="robots" content="index,follow">
+
+	{{#env.googleSiteVerif}}
+	<meta name="google-site-verification" content="{{env.googleSiteVerif}}">
+	{{/env.googleSiteVerif}}
+
+	{{#pageTitle}}
+	<title>{{pageTitle}} &middot; Alex Gherghișan</title>
+	{{/pageTitle}}
+
+	{{^pageTitle}}
+	<title>Alex Gherghișan</title>
+	{{/pageTitle}}
+	<link href="/assets/main.css" rel="stylesheet" type="text/css">
+	<link href="/assets/vendor/highlight.js/styles/solarized-light.css" rel="stylesheet" type="text/css">
+
+	{{>head}}
+</head>
+
+<body class="page-root">
+
+	<div class="container mod-center">
+		<div class="content">
+			{{>body}}
+		</div>
+	</div>
+
+	<footer>
+		<div class="container mod-center">
+			© Alex Gherghisan, 2019
+		</div>
+	</footer>
+
+	<script src="/assets/vendor/highlight.js/highlight.pack.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+
+	{{>ga}}
+</body>
+</html>

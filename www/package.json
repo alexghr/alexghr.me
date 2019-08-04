@@ -1,0 +1,34 @@
+{
+  "name": "alexghr.gitlab.io",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "http-server public -p $PORT",
+    "build": "sh scripts/build.sh",
+    "prebuild": "rm -rf public/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.com/alexghr/alexghr.gitlab.io.git"
+  },
+  "keywords": [],
+  "author": "Alex Gherghisan <alex@alexghr.me>",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://gitlab.com/alexghr/alexghr.gitlab.io/issues"
+  },
+  "homepage": "https://gitlab.com/alexghr/alexghr.gitlab.io#README",
+  "dependencies": {
+    "http-server": "^0.11.1",
+    "moment": "^2.18.1"
+  },
+  "devDependencies": {
+    "gulp": "^4.0.0",
+    "marked": "^0.6.1",
+    "merge": "^1.2.0",
+    "mkdirp": "^0.5.1",
+    "mustache": "^3.0.1"
+  }
+}
