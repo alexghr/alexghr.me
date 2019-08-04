@@ -10,5 +10,17 @@ services:
       - /data/ubuntu/certs:/etc/nginx/certs
     links:
       - www
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: eu-west-2
+        awslogs-group: alexghr.me
+        awslogs-stream-prefix: root
   www:
     image: "${DOCKER_REPO}/www.alexghr.me:latest"
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: eu-west-2
+        awslogs-group: alexghr.me
+        awslogs-stream-prefix: www

@@ -1,0 +1,9 @@
+version: 1
+task_definition:
+  services:
+    root:
+      cpu_shares: 512
+      mem_limit: 134217728
+    www:
+      cpu_shares: 512
+      mem_limit: 134217728
