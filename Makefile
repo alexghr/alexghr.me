@@ -17,7 +17,7 @@ ecs_images:
 
 # Local Docker Compose setup
 DOCKER_COMPOSE ?= docker-compose
-DOCKER_COMPOSE_COMMAND := $(DOCKER_COMPOSE) --file docker-compose.yml
+DOCKER_COMPOSE_COMMAND := $(DOCKER_COMPOSE) --file docker-compose.yml --file docker-compose.local.yml
 
 .PHONY: up
 up:
@@ -38,13 +38,4 @@ ECS_COMMAND := $(ECS) compose --project-name $(ECS_SERVICE) --cluster $(ECS_CLUS
 .PHONY: ecs_deploy
 ecs_deploy:
 	$(ECS_COMMAND) service stop
-	$(ECS_COMMAND) service start
-
-.PHONY: ecs_up
-ecs_up:
-	$(ECS_COMMAND) service up
-
-.PHONY: ecs_down
-ecs_down:
-	$(ECS_COMMAND) service down
-
+	$(ECS_COMMAND) service up --force-deployment
