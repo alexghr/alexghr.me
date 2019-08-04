@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  root:
+    image: "${DOCKER_REPO}/alexghr.me:latest"
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /data/ubuntu/certs:/etc/nginx/certs
+    links:
+      - www
+  www:
+    image: "${DOCKER_REPO}/www.alexghr.me:latest"

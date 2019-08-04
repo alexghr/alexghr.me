@@ -6,8 +6,8 @@ SHELL := bash
 image_name := alexghr.me
 IMAGE_TAG ?= $(shell git rev-parse --short HEAD)
 
-REMOTE_REPO ?=
-remote_image_name := $(REMOTE_REPO)/$(image_name)
+DOCKER_REPO ?=
+remote_image_name := $(DOCKER_REPO)/$(image_name)
 
 DOCKER ?= docker
 
@@ -29,7 +29,7 @@ latest: build
 
 .PHONY: push_latest
 push_latest: latest
-	@$(shell if  [ -z "$(REMOTE_REPO)" ]; then echo "REMOTE_REPO env var not set"; exit 1; fi)
+	@$(shell if  [ -z "$(DOCKER_REPO)" ]; then echo "DOCKER_REPO env var not set"; exit 1; fi)
 	$(DOCKER) tag $(image_name):latest $(remote_image_name):latest
 	$(DOCKER) tag $(image_name):latest $(remote_image_name):$(IMAGE_TAG)
 	$(DOCKER) push $(remote_image_name):latest
