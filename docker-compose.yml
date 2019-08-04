@@ -1,7 +1,7 @@
 version: '3'
 
 services:
-  root:
+  apex:
     image: "${DOCKER_REPO}/alexghr.me:latest"
     ports:
       - 80:80
@@ -15,7 +15,7 @@ services:
       options:
         awslogs-region: eu-west-2
         awslogs-group: alexghr.me
-        awslogs-stream-prefix: root
+        awslogs-stream-prefix: apex
   www:
     image: "${DOCKER_REPO}/www.alexghr.me:latest"
     logging:
