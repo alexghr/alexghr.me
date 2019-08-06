@@ -13,5 +13,5 @@ RUN yarn run build
 
 FROM nginx:alpine as final
 
-COPY ./nginx.conf /etc/nginx/
+COPY ./nginx /etc/nginx
 COPY --from=stage1 /app/public /srv/
