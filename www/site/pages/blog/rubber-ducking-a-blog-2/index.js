@@ -5,7 +5,7 @@ module.exports = {
   url: "/blog/rubber-ducking-a-blog-2",
   extends: __dirname + '/../../../_templates/article',
   date: '2017-05-04',
-  list: true,
+  list: false,
   partials: {
     article: __dirname + '/post.md'
   },
