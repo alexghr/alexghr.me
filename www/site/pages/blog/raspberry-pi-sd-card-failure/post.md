@@ -1,3 +1,4 @@
+[<< Back to list](/blog)
 # {{ pageTitle }}
 
 A couple of weekends ago I had a problem: I was bored. I needed to find 
