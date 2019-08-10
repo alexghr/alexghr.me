@@ -21,8 +21,7 @@ header, main, footer {
 }
 
 .page-root {
-	min-height: 100vh;
-	position: relative;
+  min-height: 100vh;
 	padding-bottom: 3rem;
 	box-sizing: border-box;
 	position: relative;
@@ -38,14 +37,9 @@ footer {
 }
 
 .content {
-	max-width: 52rem;
-	padding: 0 2rem;
-}
-
-@media (max-width: 26rem) {
-	.content {
-		padding: 0 1rem;
-	}
+  max-width: 52rem;
+  width: 90%;
+  margin: auto;
 }
 
 p {
