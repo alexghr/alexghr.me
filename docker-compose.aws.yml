@@ -1,6 +1,26 @@
 version: '3'
 
 services:
+  www:
+    image: "${DOCKER_REPO}/www.alexghr.me:latest"
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: eu-west-2
+        awslogs-group: alexghr.me
+        awslogs-stream-prefix: www
+
+  news:
+    image: "${DOCKER_REPO}/news:latest"
+    environment:
+      NEWS_API_KEY: 16bfd6ee26294f4f91a757660a8fb688
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: eu-west-2
+        awslogs-group: alexghr.me
+        awslogs-stream-prefix: news
+
   apex:
     image: "${DOCKER_REPO}/alexghr.me:latest"
     volumes:
@@ -11,11 +31,22 @@ services:
         awslogs-region: eu-west-2
         awslogs-group: alexghr.me
         awslogs-stream-prefix: apex
-  www:
-    image: "${DOCKER_REPO}/www.alexghr.me:latest"
+  
+  mkd-fe:
+    image: "${DOCKER_REPO}/mkd-fe:latest"
     logging:
       driver: awslogs
       options:
         awslogs-region: eu-west-2
         awslogs-group: alexghr.me
-        awslogs-stream-prefix: www
+        awslogs-stream-prefix: mkd
+
+  mkd-s:
+    image: "${DOCKER_REPO}/mkd-signal:latest"
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: eu-west-2
+        awslogs-group: alexghr.me
+        awslogs-stream-prefix: signal
+

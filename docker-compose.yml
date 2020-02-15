@@ -8,5 +8,21 @@ services:
       - 443:443
     links:
       - www
+      - news
+      - mkd-fe
+      - mkd-s
   www:
     image: www.alexghr.me:latest
+
+  news:
+    image: news:latest
+    environment:
+      NEWS_API_KEY: 16bfd6ee26294f4f91a757660a8fb688
+
+  mkd-fe:
+    image: mkd-fe:latest
+
+  mkd-s:
+    image: mkd-s:latest
+    ports:
+      - 8081:8081

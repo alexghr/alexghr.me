@@ -2,8 +2,17 @@ version: 1
 task_definition:
   services:
     apex:
-      cpu_shares: 512
+      cpu_shares: 128
       mem_limit: 134217728
     www:
-      cpu_shares: 512
+      cpu_shares: 128
+      mem_limit: 134217728
+    news:
+      cpu_shares: 128
+      mem_limit: 134217728
+    mkd-fe:
+      cpu_shares: 128
+      mem_limit: 134217728
+    mkd-s:
+      cpu_shares: 128
       mem_limit: 134217728
