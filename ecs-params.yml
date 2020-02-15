@@ -7,12 +7,3 @@ task_definition:
     www:
       cpu_shares: 128
       mem_limit: 134217728
-    news:
-      cpu_shares: 128
-      mem_limit: 134217728
-    mkd-fe:
-      cpu_shares: 128
-      mem_limit: 134217728
-    mkd-s:
-      cpu_shares: 128
-      mem_limit: 134217728
