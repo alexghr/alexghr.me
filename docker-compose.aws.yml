@@ -20,3 +20,13 @@ services:
         awslogs-region: eu-west-2
         awslogs-group: alexghr.me
         awslogs-stream-prefix: apex
+
+  postgres:
+    volumes:
+      - /data/postgres:/var/lib/postgresql/data
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: eu-west-2
+        awslogs-group: alexghr.me
+        awslogs-stream-prefix: postgres

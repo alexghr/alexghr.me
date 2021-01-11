@@ -10,3 +10,9 @@ services:
       - www
   www:
     image: www.alexghr.me:latest
+
+  postgres:
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+
