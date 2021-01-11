@@ -8,6 +8,7 @@ services:
       - 443:443
     links:
       - www
+      - matrix
   www:
     image: www.alexghr.me:latest
 
@@ -16,3 +17,7 @@ services:
     environment:
       POSTGRES_PASSWORD: $POSTGRES_PASSWORD
 
+  matrix:
+    image: matrixdotorg/synapse:latest
+    links:
+      - postgres

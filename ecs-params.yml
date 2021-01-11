@@ -10,3 +10,7 @@ task_definition:
     postgres:
       cpu_shares: 128
       mem_limit: 134217728
+    matrix:
+      cpu_shares: 128
+      mem_limit: 134217728
+

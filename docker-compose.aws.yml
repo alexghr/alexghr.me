@@ -30,3 +30,13 @@ services:
         awslogs-region: eu-west-2
         awslogs-group: alexghr.me
         awslogs-stream-prefix: postgres
+
+  matrix:
+    volumes:
+      - /data/matrix:/data
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: eu-west-2
+        awslogs-group: alexghr.me
+        awslogs-stream-prefix: matrix
