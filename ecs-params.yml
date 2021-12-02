@@ -7,10 +7,4 @@ task_definition:
     www:
       cpu_shares: 128
       mem_limit: 134217728
-    postgres:
-      cpu_shares: 128
-      mem_limit: 134217728
-    matrix:
-      cpu_shares: 128
-      mem_limit: 134217728
 

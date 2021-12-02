@@ -9,16 +9,5 @@ services:
       - 8448:8448
     links:
       - www
-      - matrix
   www:
     image: www.alexghr.me:latest
-
-  postgres:
-    image: postgres:13-alpine
-    environment:
-      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
-
-  matrix:
-    image: matrixdotorg/synapse:latest
-    links:
-      - postgres
