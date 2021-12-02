@@ -1,5 +1,8 @@
 FROM node:lts-alpine as stage1
 
+ARG GA
+ENV GA ${GA}
+
 WORKDIR /app
 
 COPY ./package.json ./yarn.lock ./

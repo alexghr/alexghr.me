@@ -19,6 +19,7 @@ build:
 	$(DOCKER) build \
 		--rm \
 		--quiet \
+		--build-arg GA=1 \
 		--tag $(image_name):$(IMAGE_TAG) \
 		.
 
