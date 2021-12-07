@@ -22,10 +22,12 @@ jobs:
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
         aws-region: eu-west-2
-        role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-        role-duration-seconds: 1200
-        role-session-name: MySessionName
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
     - name: ecs_images
       run: make ecs_images
 
@@ -38,9 +40,8 @@ jobs:
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
         aws-region: eu-west-2
-        role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-        role-duration-seconds: 1200
-        role-session-name: MySessionName
     - name: ecs_deploy
       run: make ecs_deploy
