@@ -21,7 +21,7 @@
   },
   "homepage": "https://gitlab.com/alexghr/alexghr.gitlab.io#README",
   "dependencies": {
-    "http-server": "^0.11.1",
+    "http-server": "^14.1.0",
     "moment": "^2.29.3"
   },
   "devDependencies": {
