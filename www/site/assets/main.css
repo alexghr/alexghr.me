@@ -111,9 +111,14 @@ p {
 
 .logo {
 	display: inline-block;
-	width: 1.25rem;
+	width: auto;
+  height: 1em;
 	line-height: 1;
 	vertical-align: middle;
+}
+
+.logo > img {
+  height: 100%;
 }
 
 a {
@@ -125,6 +130,15 @@ a {
 a:hover {
 	color: hsla(107, 70%, 50%, 1);
 	fill: hsla(107, 70%, 50%, 1);
+}
+
+#social a {
+  color: #000;
+}
+
+#social a:hover {
+  color: #000;
+  text-decoration: underline;
 }
 
 .blog-highlights {

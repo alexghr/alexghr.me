@@ -8,9 +8,6 @@ module.exports = {
     posts
   },
   partials: {
-    body: __dirname + '/index.html',
-    logoGithub: __dirname + '/github.svg',
-    logoGitLab: __dirname + '/gitlab.svg',
-    logoTwitter: __dirname + '/twitter.svg',
+    body: __dirname + '/index.html'
   }
 }
