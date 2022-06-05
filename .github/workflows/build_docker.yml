@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
 
+env:
+  GA: true
+
 jobs:
 
   build:
