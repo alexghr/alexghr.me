@@ -22,7 +22,7 @@
   "homepage": "https://gitlab.com/alexghr/alexghr.gitlab.io#README",
   "dependencies": {
     "http-server": "^14.1.0",
-    "moment": "^2.29.3"
+    "moment": "^2.29.4"
   },
   "devDependencies": {
     "gulp": "^4.0.2",
