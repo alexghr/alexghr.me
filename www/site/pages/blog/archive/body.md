@@ -1,5 +1,6 @@
 # Archive
 
+- [Website rebuild](/blog/website-rebuild) - _March 2023_
 - [Switching to NixOS](/blog/switching-to-nixos) - _May 2022_
 - [Recovering a file from the git index](/blog/recovering-a-file-from-the-git-index) - _August 2019_
 - [The death of an SD Card](/blog/raspberry-pi-sd-card-failure) - _March 2019_
