@@ -1,0 +1,3 @@
+User-agent: *
+Disallow: /_astro/
+Sitemap: https://www.alexghr.me/sitemap-index.xml
