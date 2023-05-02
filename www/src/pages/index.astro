@@ -1,0 +1,114 @@
+---
+import github from "../assets/home/github.png";
+import linkedin from "../assets/home/linkedin.png";
+import twitter from "../assets/home/twitter.png";
+import { recentBlogPosts } from "../blog";
+import BaseHead from "../components/BaseHead.astro";
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
+import Main from "../components/Main.astro";
+import PostList from "../components/PostList.astro";
+import { SITE_DESCRIPTION, SITE_TITLE } from "../consts";
+
+const posts = await recentBlogPosts();
+---
+
+<head>
+  <BaseHead fullTitle={SITE_TITLE} description={SITE_DESCRIPTION} />
+</head>
+
+<Header />
+<Main>
+  <h1 class="page-title">Alex Gherghișan</h1>
+  <div class="on-the-internet">
+    <div class="on-the-internet-headline">
+      <p>Hi! I'm a Software Developer in the UK</p>
+      <p>Me on the Internet</p>
+    </div>
+    <ul id="social" class="list mod-horiz mod-full-width">
+      <li class="list-item">
+        <a href="https://github.com/alexghr">
+          <span class="logo">
+            <img src={github.src} />
+          </span>
+          Github
+        </a>
+      </li>
+      <li class="list-item">
+        <a href="https://www.linkedin.com/in/alexghr/">
+          <span class="logo">
+            <img src={linkedin.src} />
+          </span>
+          LinkedIn
+        </a>
+      </li>
+      <li class="list-item">
+        <a href="https://twitter.com/@_alexghr">
+          <span class="logo">
+            <img src={twitter.src} />
+          </span>
+          Twitter
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="blog-highlights">
+    <div class="blog-highlights-latest">
+      I have a tech blog. These are the latest things that I've wrote:
+      <PostList posts={posts} />
+    </div>
+
+    <div class="blog-highlights-archive">
+      Or check out the whole <a href="/blog">archive</a>
+    </div>
+  </div>
+</Main>
+
+<Footer />
+
+<style>
+  #social a {
+    color: #000;
+  }
+
+  #social a:hover {
+    color: #000;
+    text-decoration: underline;
+  }
+
+  .page-title {
+    font-size: 2.5em;
+    text-align: center;
+  }
+
+  @media (max-width: 26rem) {
+    .page-title {
+      font-size: 2rem;
+    }
+  }
+
+  .on-the-internet {
+    width: 100%;
+  }
+  .on-the-internet-headline {
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .logo {
+    display: inline-block;
+    width: auto;
+    height: 1em;
+    line-height: 1;
+    vertical-align: middle;
+  }
+
+  .logo > img {
+    height: 100%;
+  }
+
+  .blog-highlights {
+    margin-top: 2rem;
+  }
+</style>

@@ -1,20 +1,21 @@
 FROM node:lts-alpine as stage1
 
-ARG GA
-ENV GA ${GA}
+ARG GOOGLE_SITE_VERIFICATION
+ENV GOOGLE_SITE_VERIFICATION ${GOOGLE_SITE_VERIFICATION}
 
 WORKDIR /app
 
-COPY ./package.json ./yarn.lock ./
-RUN yarn install --frozen-lockfile
+RUN corepack enable
 
-COPY ./site/ ./site
-COPY ./scripts/ ./scripts
+COPY ./package.json ./pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile --prefer-offline
 
-RUN yarn run build
+COPY ./astro.config.mjs ./
+COPY ./src ./src
 
+RUN pnpm build
 
 FROM nginx:alpine as final
 
 COPY ./nginx /etc/nginx
-COPY --from=stage1 /app/public /srv/
+COPY --from=stage1 /app/dist /srv/

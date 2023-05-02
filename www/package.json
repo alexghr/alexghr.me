@@ -1,34 +1,30 @@
 {
-  "name": "alexghr.gitlab.io",
-  "version": "1.0.0",
-  "private": true,
-  "description": "",
+  "name": "retrograde-radiation",
+  "type": "module",
+  "version": "0.0.1",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "http-server public -p ${PORT:-8080}",
-    "build": "sh scripts/build.sh",
-    "prebuild": "rm -rf public/"
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "lint": "eslint",
+    "format": "prettier --plugin-search-dir=. --check ."
   },
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@gitlab.com/alexghr/alexghr.gitlab.io.git"
-  },
-  "keywords": [],
-  "author": "Alex Gherghisan <alex@alexghr.me>",
-  "license": "UNLICENSED",
-  "bugs": {
-    "url": "https://gitlab.com/alexghr/alexghr.gitlab.io/issues"
-  },
-  "homepage": "https://gitlab.com/alexghr/alexghr.gitlab.io#README",
   "dependencies": {
-    "http-server": "^14.1.0",
-    "moment": "^2.29.3"
+    "@astrojs/mdx": "^0.19.0",
+    "@astrojs/rss": "^2.4.0",
+    "@astrojs/sitemap": "^1.2.2",
+    "astro": "^2.3.2"
   },
   "devDependencies": {
-    "gulp": "^4.0.2",
-    "marked": "^4.0.15",
-    "merge": "^2.1.1",
-    "mkdirp": "^1.0.4",
-    "mustache": "^4.2.0"
-  }
+    "@typescript-eslint/parser": "^5.59.1",
+    "eslint": "^8.39.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-astro": "^0.26.1",
+    "eslint-plugin-jsx-a11y": "^6.7.1",
+    "prettier": "^2.8.8",
+    "prettier-plugin-astro": "^0.8.0"
+  },
+  "packageManager": "pnpm@8.3.1"
 }

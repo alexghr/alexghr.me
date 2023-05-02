@@ -1,0 +1,27 @@
+---
+import { sortedBlogPosts } from "../../blog";
+import BaseHead from "../../components/BaseHead.astro";
+import Footer from "../../components/Footer.astro";
+import Header from "../../components/Header.astro";
+import Main from "../../components/Main.astro";
+import PostList from "../../components/PostList.astro";
+
+const posts = await sortedBlogPosts();
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <BaseHead title="Archive" description="Archive of blog posts" />
+  </head>
+  <body>
+    <Header />
+    <Main>
+      <h1>Archive</h1>
+      <section>
+        <PostList posts={posts} />
+      </section>
+    </Main>
+    <Footer />
+  </body>
+</html>
