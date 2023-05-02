@@ -19,7 +19,7 @@ build:
 	$(DOCKER) build \
 		--rm \
 		--quiet \
-		--build-arg GA=1 \
+		--build-arg GOOGLE_SITE_VERIFICATION="$(GOOGLE_SITE_VERIFICATION)" \
 		--tag $(image_name):$(IMAGE_TAG) \
 		.
 
