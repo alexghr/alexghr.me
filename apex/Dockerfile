@@ -1,4 +1,4 @@
-FROM nginx:alpine
+FROM nginx:1.23-alpine
 
 COPY ./nginx/ /etc/nginx
 #COPY ./static/ /srv/alexghr.me/static

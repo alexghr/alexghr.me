@@ -1,4 +1,4 @@
-FROM node:lts-alpine as stage1
+FROM node:18-alpine as stage1
 
 ARG GOOGLE_SITE_VERIFICATION
 ENV GOOGLE_SITE_VERIFICATION ${GOOGLE_SITE_VERIFICATION}
@@ -15,7 +15,7 @@ COPY ./src ./src
 
 RUN pnpm build
 
-FROM nginx:alpine as final
+FROM nginx:1.23-alpine as final
 
 COPY ./nginx /etc/nginx
 COPY --from=stage1 /app/dist /srv/
