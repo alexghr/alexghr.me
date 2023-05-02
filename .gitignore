@@ -2,3 +2,5 @@
 *.log
 certs/
 .env
+.env*
+.direnv/
