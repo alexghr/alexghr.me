@@ -11,8 +11,3 @@ updates:
     schedule:
       interval: daily
 
-  - package-ecosystem: docker
-    directory: apex/
-    schedule:
-      interval: daily
-
