@@ -4,9 +4,6 @@ on:
   push:
     branches: [main]
 
-env:
-  GOOGLE_SITE_VERIFICATION: ${{ secrets.GOOGLE_SITE_VERIFICATION }}
-
 jobs:
 
   build:
@@ -34,5 +31,6 @@ jobs:
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/www:latest
           build-args: |
-            GOOGLE_SITE_VERIFICATION=${{ env.GOOGLE_SITE_VERIFICATION }}
+            GOOGLE_SITE_VERIFICATION=${{ secrets.GOOGLE_SITE_VERIFICATION }}
+            SITE=${{ secrets.SITE }}
 
