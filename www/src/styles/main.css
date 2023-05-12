@@ -80,3 +80,7 @@ img {
   max-width: 100%;
   height: auto;
 }
+
+pre {
+  padding: 0.5rem;
+}
