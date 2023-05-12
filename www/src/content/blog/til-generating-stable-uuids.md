@@ -1,5 +1,5 @@
 ---
-title: "TIL: Generating stable UUIDs"
+title: "TIL: A use case for UUIDv5"
 description: "In this post I talk about generating stable IDs using UUIDv5 and my use case for them"
 pubDate: "2023-05-12"
 ---
