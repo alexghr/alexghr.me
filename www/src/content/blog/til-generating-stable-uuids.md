@@ -26,11 +26,11 @@ v5("foo", NS); // => '86ff592f-f174-511e-b82f-ba0a8781992b'
 
 As long the namespace doesn't change you'll get the same UUID back for the same string. The namespace can be part of your code's configuration or even a constant in the source, just make sure it doesn't change 😄.
 
-## Use case
+## Use case: sync data to Sanity
 
 I needed to sync some data I had in a CSV to a [Sanity](https://www.sanity.io/) dataset. I wanted my sync script to be idempotent so that running it mutliple times, without nuking the dataset wouldn't create a bunch of duplicate documents.
 
-My first go at it I prefixed the data with `csv.`, making IDs follow the pattern, e.g. `csv.foo`, `csv.bar`. This allowed me to effectively run "uspert" commands on the Sanity dataset:
+My first go at it I prefixed my IDs with `csv.`, e.g. `csv.foo`, `csv.bar`. This allowed me to run "uspert" commands on the Sanity dataset:
 
 ```js
 client.mutate(data.map((row) => ({
@@ -61,4 +61,4 @@ client.mutate(data.map((row) => ({
 }))
 ```
 
-With proper UUIDs requests to Sanity became much simpler and I didn't have to worry about accidentally retrieving draft documents. 😬
+With proper UUIDs, requests to Sanity became much simpler and I didn't have to worry about accidentally retrieving draft documents. 😬
