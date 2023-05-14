@@ -17,9 +17,8 @@ export const get: APIRoute = async (context) => {
     trailingSlash: true,
   });
 
-  return new Response(body, {
-    headers: {
-      "content-type": "application/rss+xml",
-    },
-  });
+  const response = new Response(body);
+  response.headers.set("content-type", "application/rss+xml; charset=UTF-8");
+
+  return response;
 };
