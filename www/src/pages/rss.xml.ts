@@ -5,7 +5,7 @@ import { SITE_DESCRIPTION, SITE_TITLE } from "../consts";
 
 export const get: APIRoute = async (context) => {
   const posts = await getCollection("blog");
-  const { body } = await rss({
+  return rss({
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     site: context.site?.href ?? "",
@@ -16,9 +16,4 @@ export const get: APIRoute = async (context) => {
     })),
     trailingSlash: true,
   });
-
-  const response = new Response(body);
-  response.headers.set("content-type", "application/rss+xml; charset=UTF-8");
-
-  return response;
 };
