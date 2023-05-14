@@ -33,4 +33,5 @@ jobs:
           build-args: |
             GOOGLE_SITE_VERIFICATION=${{ secrets.GOOGLE_SITE_VERIFICATION }}
             SITE=${{ secrets.SITE }}
+            NEWSLETTER_SUBMIT_URL=${{ secrets.NEWSLETTER_SUBMIT_URL }}
 

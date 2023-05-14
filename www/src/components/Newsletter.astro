@@ -1,0 +1,77 @@
+---
+const { NEWSLETTER_SUBMIT_URL: action } = import.meta.env;
+---
+
+{action && <form
+  action={action}
+  method="post"
+  target="popupwindow"
+  class="embeddable-buttondown-form"
+>
+  <p>Subscribe for updates:</p>
+  <label for="email">Email</label>
+  <input type="email" name="email" placeholder="you@example.com" />
+  <input type="hidden" value="1" name="embed" />
+  <button type="submit">Subscribe</button>
+  <p>
+    <a href="https://buttondown.email" target="_blank">
+      Powered by Buttondown.
+    </a>
+  </p>
+</form>}
+
+<style>
+  form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    max-width: 240px;
+    width: 100%;
+  }
+
+  label {
+    border: 0;
+    clip: rect(0 0 0 0);
+    -webkit-clip-path: inset(50%);
+    clip-path: inset(50%);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+    white-space: nowrap;
+  }
+
+  input[type="email"] {
+    width: 100%;
+    display: block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 8px;
+    margin: 8px 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  button {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 8px;
+    margin: 8px 0;
+    width: 100%;
+    max-width: 300px;
+    background-color: #fff;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background-color: #eee;
+  }
+
+  a {
+    color: #999;
+  }
+</style>
