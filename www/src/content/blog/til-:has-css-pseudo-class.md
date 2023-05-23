@@ -1,7 +1,7 @@
 ---
 title: "TIL: Use :has to target parent elements in CSS selectors"
-description: "Today I learn: about the :has CSS pseudo class and how it can be used to target parent elements."
-pubDate: "2023-05-23"
+description: "Today I learned: about the :has CSS pseudo class and how it can be used to target parent elements."
+pubDate: "2023-05-23T00:00:00Z"
 ---
 
 When I was first introduced to CSS in university, I was told that selectors only go from left to right. No matter how complex a selector is, the declaration will always apply to the last element in the chain.
