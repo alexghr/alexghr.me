@@ -2,6 +2,7 @@
 // Import the global.css file here so that it is included on
 // all pages through the use of the <BaseHead /> component.
 import "../styles/main.css";
+import logo from "../assets/logo.svg"
 
 type Title =
   | {
@@ -35,7 +36,7 @@ const googleSiteVerification =
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <meta name="generator" content={Astro.generator} />
 
-<!-- <link rel="icon" type="image/svg+xml" href="/favicon.svg" /> -->
+<link rel="icon" type="image/svg+xml" href={logo.src} />
 
 {
   googleSiteVerification && (
