@@ -2,7 +2,15 @@
 title: "NixOS VM on Hetzner with Flakes & Btrfs"
 description: ""
 pubDate: "2023-04-15"
+updatedDate: "2023-06-11"
 ---
+
+> ❗❗❗
+>
+> Hey, this article is a bit out of date.
+> It still presents a valid approach to running NixOS on Hetzner, but I use [nixos-anywhere](/blog/til-nixos-anywhere/) now.
+>
+> ❗❗❗
 
 A year ago I migrated the server that hosts this website to run on NixOS. I manually installed the new operating system on a Hetzner VM as a test. Well, temporary things aren’t temporary forever and a year later it’s still up and running. It doesn't have any problems but I didn't take any notes during the installation process and so I’ve forgotten most of the things I did to get the OS installed. This post will serve as a guide for me, a walkthrough, of the steps I followed to get a NixOS VM up and running. Who knows, it might help someone too 🤷
 
