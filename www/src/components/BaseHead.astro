@@ -29,6 +29,10 @@ const fullTitle =
     : title + " · Alex Gherghișan";
 const googleSiteVerification =
   import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION ?? "";
+
+const analytics =
+  (import.meta.env.PUBLIC_ANALYTICS ?? "true") === "true";
+
 ---
 
 <!-- Global Metadata -->
@@ -66,6 +70,6 @@ const googleSiteVerification =
 <meta property="twitter:description" content={description} />
 {image && <meta property="twitter:image" content={new URL(image, Astro.url)} />}
 
-<script defer data-domain="alexghr.me" src="https://plausible.alexghr.me/js/script.js"></script>
+{analytics && <script defer data-domain="alexghr.me" src="https://plausible.alexghr.me/js/script.js"></script>}
 
 <meta name="test" content="test" />
