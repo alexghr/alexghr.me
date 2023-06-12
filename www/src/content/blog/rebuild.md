@@ -4,7 +4,7 @@ description: ""
 pubDate: "2023-03-24"
 ---
 
-I’ve been thinking about resurrecting this website. Its tech stack is pretty ancient by this point: it’s a static site built form a bunch of Markdown files and `.js` spec files (instead of frontmatter 🤦) with a custom build process that generates HTML files (read more about it [here](/blog/rubber-ducking-a-blog) and [here](/blog/rubber-ducking-a-blog-2)). There's no support for bundling Javascript, no image optimizations and no caching. It's pretty bare bones.
+I’ve been thinking about resurrecting this website. Its tech stack is pretty ancient by this point: it’s a static site built form a bunch of Markdown files and `.js` spec files (instead of frontmatter 🤦) with a custom build process that generates HTML files (read more about it [here](/blog/rubber-ducking-a-blog/) and [here](/blog/rubber-ducking-a-blog-2/)). There's no support for bundling Javascript, no image optimizations and no caching. It's pretty bare bones.
 
 Almost a year ago I moved all of my personal devices to Nix (and NixOS) and I liked it so much that I migrated the one VM I had hosting this site to NixOS as well 😄. Unfortunately my _inexperience_ with Nix showed and rather than using the platform, I enabled [Kubernetes](https://github.com/alexghr/nix/blob/538f9831a3dd051de49e0d4e64faba58fbdbe7ee/hosts/nix-1/configuration.nix#L103-L104) to manage the services. And that was fine, mostly, but it created a bunch of unnecessary work for me: on top of maintaining a NixOS VM now I also had to effectively admin a Kubernetes cluster. I can use Kubernetes as an app developer, to deploy services and pods and manage databases, but I don't know enough of how it works to confidently say my cluster is secure.
 
