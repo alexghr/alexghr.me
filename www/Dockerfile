@@ -20,7 +20,7 @@ COPY ./src ./src
 
 RUN pnpm build
 
-FROM nginx:1.23-alpine as final
+FROM nginx:1.25.1-alpine as final
 
 COPY ./nginx /etc/nginx
 COPY --from=stage1 /app/dist /srv/
