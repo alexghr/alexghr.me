@@ -33,6 +33,8 @@ const googleSiteVerification =
 const analytics =
   (import.meta.env.PUBLIC_ANALYTICS ?? "true") === "true";
 
+const feedUrl = new URL("/rss.xml", Astro.site);
+
 ---
 
 <!-- Global Metadata -->
@@ -72,4 +74,5 @@ const analytics =
 
 {analytics && <script defer data-domain="alexghr.me" src="https://plausible.alexghr.me/js/script.js"></script>}
 
-<meta name="test" content="test" />
+
+<link rel="alternate" type="application/rss+xml" title="RSS Feed" href={feedUrl}>
