@@ -85,11 +85,11 @@ The other thing I was interested in was what user agents were being used to acce
     </tr>
   </thead>
   <tbody>
-    <tr><td>CommaFeed</td><td>1209</td></tr>
-    <tr><td>FreshRSS</td><td>993</td></tr>
-    <tr><td>Unread RSS Reader</td><td>501</td></tr>
-    <tr><td>NetNewsWire</td><td>496</td></tr>
-    <tr><td>SpaceCowboys Android RSS Reader</td><td>389</td></tr>
+    <tr><td>CommaFeed</td><td>1215</td></tr>
+    <tr><td>FreshRSS</td><td>1001</td></tr>
+    <tr><td>Unread RSS Reader</td><td>505</td></tr>
+    <tr><td>NetNewsWire</td><td>502</td></tr>
+    <tr><td>SpaceCowboys Android RSS Reader</td><td>394</td></tr>
   </tbody>
 </table>
 
