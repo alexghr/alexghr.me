@@ -16,6 +16,7 @@ COPY ./package.json ./pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile --prefer-offline
 
 COPY ./astro.config.mjs ./
+COPY ./public ./public
 COPY ./src ./src
 
 RUN pnpm build
