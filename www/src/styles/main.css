@@ -84,3 +84,7 @@ img {
 pre {
   padding: 0.5rem;
 }
+
+summary {
+  cursor: pointer;
+}
