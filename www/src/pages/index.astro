@@ -11,10 +11,13 @@ import PostList from "../components/PostList.astro";
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_TITLE } from "../consts";
 
 const posts = await recentBlogPosts();
+const feedUrl = new URL("/rss.xml", Astro.site);
+
 ---
 
 <head>
   <BaseHead fullTitle={SITE_TITLE} description={SITE_DESCRIPTION} keywords={SITE_KEYWORDS} />
+  <link rel="alternate" type="application/rss+xml" title={SITE_TITLE} href={feedUrl}>
 </head>
 
 <Header />
