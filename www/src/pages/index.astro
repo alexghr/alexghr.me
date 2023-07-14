@@ -8,13 +8,13 @@ import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
 import Main from "../components/Main.astro";
 import PostList from "../components/PostList.astro";
-import { SITE_DESCRIPTION, SITE_TITLE } from "../consts";
+import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_TITLE } from "../consts";
 
 const posts = await recentBlogPosts();
 ---
 
 <head>
-  <BaseHead fullTitle={SITE_TITLE} description={SITE_DESCRIPTION} />
+  <BaseHead fullTitle={SITE_TITLE} description={SITE_DESCRIPTION} keywords={SITE_KEYWORDS} />
 </head>
 
 <Header />
