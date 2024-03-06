@@ -5,8 +5,8 @@ dependencies:
     specifier: ^0.19.0
     version: 0.19.0(astro@2.3.2)(rollup@3.21.0)
   '@astrojs/rss':
-    specifier: ^2.4.0
-    version: 2.4.0
+    specifier: ^2.4.4
+    version: 2.4.4
   '@astrojs/sitemap':
     specifier: ^1.2.2
     version: 1.2.2
@@ -135,10 +135,10 @@ packages:
       prismjs: 1.29.0
     dev: false
 
-  /@astrojs/rss@2.4.0:
-    resolution: {integrity: sha512-cbSgrNUCmwfzXTEqfK/6vk+Ut5auHnIpv6Z5e5JaiDPUX7vcn3175nFBj68ujcb5HGY0rQ9ohGY4a4VX3ScmDg==}
+  /@astrojs/rss@2.4.4:
+    resolution: {integrity: sha512-HQFoHyHVoODyeyAFoVPej8OOZowiuXvB5AFIzY4AiPCdwlBz5JGpzW5vPARG/FCqAI9AS3Wi0sU/RZh3Cu8SWQ==}
     dependencies:
-      fast-xml-parser: 4.2.2
+      fast-xml-parser: 4.2.7
       kleur: 4.1.5
     dev: false
 
@@ -1997,8 +1997,8 @@ packages:
     resolution: {integrity: sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==}
     dev: true
 
-  /fast-xml-parser@4.2.2:
-    resolution: {integrity: sha512-DLzIPtQqmvmdq3VUKR7T6omPK/VCRNqgFlGtbESfyhcH2R4I8EzK1/K6E8PkRCK2EabWrUHK32NjYRbEFnnz0Q==}
+  /fast-xml-parser@4.2.7:
+    resolution: {integrity: sha512-J8r6BriSLO1uj2miOk1NW0YVm8AGOOu3Si2HQp/cSmo6EA4m3fcwu2WKjJ4RK9wMLBtg69y1kS8baDiQBR41Ig==}
     hasBin: true
     dependencies:
       strnum: 1.0.5
