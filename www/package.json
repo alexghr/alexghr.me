@@ -21,7 +21,7 @@
     "@typescript-eslint/parser": "^6.21.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^8.10.0",
-    "eslint-plugin-astro": "^0.28.0",
+    "eslint-plugin-astro": "^1.2.0",
     "eslint-plugin-jsx-a11y": "^6.8.0",
     "prettier": "^2.8.8",
     "prettier-plugin-astro": "^0.11.1"
