@@ -18,7 +18,7 @@
     "astro": "^2.10.15"
   },
   "devDependencies": {
-    "@typescript-eslint/parser": "^6.21.0",
+    "@typescript-eslint/parser": "^7.12.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^8.10.0",
     "eslint-plugin-astro": "^0.28.0",
