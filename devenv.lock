@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "agents": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1788597255,
+        "narHash": "sha256-+euINpJMPRRkI1YI/KEDFCq/JBw0xCiet7/2knD+tm4=",
+        "owner": "alexghr",
+        "repo": "agents.nix",
+        "rev": "815bbd84316b9665649d800586a359e6faf7843a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "alexghr",
+        "repo": "agents.nix",
+        "type": "github"
+      }
+    },
     "devenv": {
       "locked": {
         "dir": "src/modules",
@@ -71,6 +87,7 @@
     },
     "root": {
       "inputs": {
+        "agents": "agents",
         "devenv": "devenv",
         "nixpkgs": "nixpkgs",
         "nixpkgs-unstable": "nixpkgs-unstable"
