@@ -39,3 +39,16 @@ jobs:
       - name: Build and Test
         run: |
           ./shell p-ci
+      - name: Inspect Nix cache contents
+        run: |
+          echo '::group::Largest Nix store paths (KiB, top 30)'
+          du -k --max-depth=1 /nix/store | sort -n | tail -n 31
+          echo '::endgroup::'
+          echo '::group::Nix store paths with most filesystem entries (top 30)'
+          du --inodes --max-depth=1 /nix/store | sort -n | tail -n 31
+          echo '::endgroup::'
+          echo '::group::Nix metadata cache size'
+          if [ -d "$HOME/.cache/nix" ]; then
+            du -k --max-depth=1 "$HOME/.cache/nix" | sort -n
+          fi
+          echo '::endgroup::'
