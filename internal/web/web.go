@@ -13,6 +13,9 @@ import (
 	"time"
 )
 
+// turned on during development in order to disable caching and loading files from disk
+var Debug = "false"
+
 type handler struct {
 	templates *templates
 	log       *slog.Logger
@@ -24,7 +27,7 @@ func NewHTTPHandler(log *slog.Logger) (http.Handler, error) {
 		return nil, fmt.Errorf("static file server: %w", err)
 	}
 
-	templates, err := newPages()
+	templates, err := newTemplates()
 	if err != nil {
 		return nil, fmt.Errorf("templates: %w", err)
 	}
@@ -57,7 +60,7 @@ func (h *handler) serveIndex(w http.ResponseWriter, r *http.Request) {
 	t, err := h.templates.get("index")
 
 	if err != nil {
-		h.renderError(w)
+		h.renderError(w, r)
 		return
 	}
 
@@ -67,10 +70,13 @@ func (h *handler) serveIndex(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *handler) renderError(w http.ResponseWriter) {
+func (h *handler) renderError(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(500)
+	_, err := w.Write([]byte("<body>there was an error</body>"))
+	if err != nil {
+		h.log.ErrorContext(r.Context(), "serve index", "method", r.Method, "path", r.URL.Path, "error", err)
+	}
 }
-
-var Debug = "false"
 
 //go:embed static
 var embeddedStaticFS embed.FS
@@ -106,7 +112,7 @@ type templates struct {
 	mu    sync.Mutex
 }
 
-func newPages() (*templates, error) {
+func newTemplates() (*templates, error) {
 	if Debug == "true" {
 		root, err := os.OpenRoot("internal/web/templates")
 		if err != nil {
