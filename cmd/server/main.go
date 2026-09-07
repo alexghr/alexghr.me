@@ -27,9 +27,12 @@ func main() {
 func run(logger *slog.Logger, addr string) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-
+	h, err := web.NewHTTPHandler(logger)
+	if err != nil {
+		return fmt.Errorf("http handler: %w", err)
+	}
 	server := &http.Server{
-		Handler:           web.NewHandler(),
+		Handler:           h,
 		ReadHeaderTimeout: 5 * time.Second,
 		IdleTimeout:       time.Minute,
 	}

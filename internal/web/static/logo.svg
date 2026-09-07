@@ -1,0 +1,31 @@
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="-32 -32 64 64" fill="transparent">
+  <style>
+    svg {
+      --bg: #fff;
+      --s: hsl(107deg 70% 35%);
+      --l: hsl(0deg 0% 20%);
+      background-color: var(--bg);
+    }
+
+    #base {
+      fill: var(--l);
+    }
+
+    .mask {
+      fill: var(--bg);
+    }
+
+    .stroke {
+      stroke: var(--s);
+      stroke-width: 8;
+    }
+  </style>
+
+  <rect x="-12" y="2" width="24" height="6" fill="white" id="base" />
+  <use x="-2" y="-14" transform="rotate(-66) scale(2, 1)" id="left" href="#base" />
+  <use x="0" y="0" transform="scale(-1, 1)" id="right" href="#left" />
+
+  <rect class="mask" x="-32" y="18" width="64" height="8" />
+  <rect class="mask" x="-32" y="-30" width="64" height="8" />
+  <rect class="stroke" x="-32" y="-32" width="64" height="64" />
+</svg>

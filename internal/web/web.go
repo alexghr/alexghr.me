@@ -1,19 +1,152 @@
 package web
 
 import (
-	"io"
+	"embed"
+	"fmt"
+	"html/template"
+	"io/fs"
+	"log/slog"
 	"net/http"
+	"os"
+	"strconv"
+	"sync"
+	"time"
 )
 
-func NewHandler() http.Handler {
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("GET /{$}", serveIndex)
-
-	return mux
+type handler struct {
+	templates *templates
+	log       *slog.Logger
 }
 
-func serveIndex(w http.ResponseWriter, _ *http.Request) {
+func NewHTTPHandler(log *slog.Logger) (http.Handler, error) {
+	static, err := newStaticFileServer()
+	if err != nil {
+		return nil, fmt.Errorf("static file server: %w", err)
+	}
+
+	templates, err := newPages()
+	if err != nil {
+		return nil, fmt.Errorf("templates: %w", err)
+	}
+
+	if log == nil {
+		log = slog.Default()
+	}
+
+	h := &handler{templates: templates, log: log}
+
+	mux := http.NewServeMux()
+	mux.Handle("/static/", http.StripPrefix("/static/", cache(static, 600*time.Second)))
+	mux.HandleFunc("GET /{$}", h.serveIndex)
+
+	return mux, nil
+}
+
+func cache(next http.Handler, duration time.Duration) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if Debug != "true" {
+			sec := int32(duration.Seconds())
+			w.Header().Set("Cache-Control", "public, max-age="+strconv.FormatInt(int64(sec), 10))
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (h *handler) serveIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, _ = io.WriteString(w, "<body>hi</body>")
+	t, err := h.templates.get("index")
+
+	if err != nil {
+		h.renderError(w)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := t.ExecuteTemplate(w, "base", nil); err != nil {
+		h.log.ErrorContext(r.Context(), "serve index", "method", r.Method, "path", r.URL.Path, "error", err)
+	}
+}
+
+func (h *handler) renderError(w http.ResponseWriter) {
+}
+
+var Debug = "false"
+
+//go:embed static
+var embeddedStaticFS embed.FS
+
+func newStaticFileServer() (http.Handler, error) {
+	var files fs.FS
+	if Debug == "true" {
+		root, err := os.OpenRoot("internal/web/static")
+		if err != nil {
+			return nil, fmt.Errorf("open local static/: %w", err)
+		}
+
+		files = root.FS()
+	} else {
+		fs, err := fs.Sub(embeddedStaticFS, "static")
+
+		if err != nil {
+			return nil, fmt.Errorf("open embedded static/: %w", err)
+		}
+
+		files = fs
+	}
+
+	return http.FileServerFS(files), nil
+}
+
+//go:embed templates
+var embeddedTemplateFS embed.FS
+
+type templates struct {
+	fs    fs.FS
+	cache map[string]*template.Template
+	mu    sync.Mutex
+}
+
+func newPages() (*templates, error) {
+	if Debug == "true" {
+		root, err := os.OpenRoot("internal/web/templates")
+		if err != nil {
+			return nil, fmt.Errorf("open local templates: %w", err)
+		}
+
+		return &templates{fs: root.FS(), cache: nil}, nil
+	}
+
+	fs, err := fs.Sub(embeddedTemplateFS, "templates")
+	if err != nil {
+		return nil, err
+	}
+
+	return &templates{
+		fs:    fs,
+		cache: make(map[string]*template.Template),
+	}, nil
+}
+
+func (t *templates) get(name string) (*template.Template, error) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	if t.cache != nil {
+		tmpl, found := t.cache[name]
+		if found {
+			return tmpl, nil
+		}
+	}
+
+	// Load shared defaults first so each page can override them.
+	tmpl, err := template.ParseFS(t.fs, "base.html", name+".html")
+	if err != nil {
+		return nil, fmt.Errorf("parse template %s: %w", name, err)
+	}
+
+	if t.cache != nil {
+		t.cache[name] = tmpl
+	}
+
+	return tmpl, nil
 }
