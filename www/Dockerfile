@@ -1,4 +1,4 @@
-FROM node:20-alpine as stage1
+FROM node:26-alpine as stage1
 
 ARG NEWSLETTER_SUBMIT_URL
 ARG GOOGLE_SITE_VERIFICATION
