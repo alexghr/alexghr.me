@@ -15,6 +15,8 @@ import (
 
 // turned on during development in order to disable caching and loading files from disk
 var Debug = "false"
+// set during release build
+var Version = "dev"
 
 type handler struct {
 	templates *templates
