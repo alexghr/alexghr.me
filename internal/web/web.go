@@ -8,13 +8,13 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"strconv"
 	"sync"
 	"time"
 )
 
 // turned on during development in order to disable caching and loading files from disk
 var Debug = "false"
+
 // set during release build
 var Version = "dev"
 
@@ -44,17 +44,7 @@ func NewHTTPHandler(log *slog.Logger) (http.Handler, error) {
 	mux.Handle("/static/", http.StripPrefix("/static/", cache(static, 600*time.Second)))
 	mux.HandleFunc("GET /{$}", h.serveIndex)
 
-	return mux, nil
-}
-
-func cache(next http.Handler, duration time.Duration) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if Debug != "true" {
-			sec := int32(duration.Seconds())
-			w.Header().Set("Cache-Control", "public, max-age="+strconv.FormatInt(int64(sec), 10))
-		}
-		next.ServeHTTP(w, r)
-	})
+	return compress(mux), nil
 }
 
 func (h *handler) serveIndex(w http.ResponseWriter, r *http.Request) {
