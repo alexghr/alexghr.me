@@ -38,16 +38,17 @@ func NewHTTPHandler(log *slog.Logger) (http.Handler, error) {
 		log = slog.Default()
 	}
 
-	h := &handler{templates: templates, log: log}
+	h := handler{templates: templates, log: log}
 
 	mux := http.NewServeMux()
 	mux.Handle("/static/", http.StripPrefix("/static/", cache(static, 600*time.Second)))
 	mux.HandleFunc("GET /{$}", h.serveIndex)
+	mux.HandleFunc("GET /api/reload", h.notifyReload)
 
 	return compress(mux), nil
 }
 
-func (h *handler) serveIndex(w http.ResponseWriter, r *http.Request) {
+func (h handler) serveIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	t, err := h.templates.get("index")
 
@@ -62,7 +63,7 @@ func (h *handler) serveIndex(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *handler) renderError(w http.ResponseWriter, r *http.Request) {
+func (h handler) renderError(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(500)
 	_, err := w.Write([]byte("<body>there was an error</body>"))
 	if err != nil {

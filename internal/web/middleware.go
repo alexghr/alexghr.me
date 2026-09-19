@@ -21,10 +21,9 @@ func cache(next http.Handler, duration time.Duration) http.Handler {
 
 func compress(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		accept := r.Header.Get("Accept-Encoding")
-
 		// TODO: Accept-Encoding is more complex than a list of encodings. Make this better.
-		if !strings.Contains(accept, "gzip") {
+		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") ||
+			strings.HasPrefix(r.URL.Path, "/api") {
 			next.ServeHTTP(w, r)
 			return
 		}
