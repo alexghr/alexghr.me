@@ -6,8 +6,10 @@ import (
 	"html/template"
 	"io/fs"
 	"log/slog"
+	"math/rand/v2"
 	"net/http"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -15,12 +17,22 @@ import (
 // turned on during development in order to disable caching and loading files from disk
 var Debug = "false"
 
+func isDebug() bool {
+	return Debug == "true"
+}
+
 // set during release build
 var Version = "dev"
 
 type handler struct {
 	templates *templates
 	log       *slog.Logger
+	id        string
+}
+
+type model struct {
+	InstanceID string
+	Debug      bool
 }
 
 func NewHTTPHandler(log *slog.Logger) (http.Handler, error) {
@@ -38,7 +50,8 @@ func NewHTTPHandler(log *slog.Logger) (http.Handler, error) {
 		log = slog.Default()
 	}
 
-	h := handler{templates: templates, log: log}
+	id := strconv.FormatUint(rand.Uint64(), 16)
+	h := handler{templates: templates, log: log, id: id}
 
 	mux := http.NewServeMux()
 	mux.Handle("/static/", http.StripPrefix("/static/", cache(static, 600*time.Second)))
@@ -57,8 +70,10 @@ func (h handler) serveIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	m := model{InstanceID: h.id, Debug: isDebug()}
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := t.ExecuteTemplate(w, "base", nil); err != nil {
+	if err := t.ExecuteTemplate(w, "base", m); err != nil {
 		h.log.ErrorContext(r.Context(), "serve index", "method", r.Method, "path", r.URL.Path, "error", err)
 	}
 }

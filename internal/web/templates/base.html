@@ -14,7 +14,12 @@
   <body>
     <main>{{block "main" .}}{{end}}</main>
 
+    {{if .Debug}}
+    <script type="module">
+      globalThis.INSTANCE_ID = {{ .InstanceID }};
+    </script>
     <script src="/static/reload.js" type="module"></script>
+    {{end}}
   </body>
 </html>
 {{- end}}

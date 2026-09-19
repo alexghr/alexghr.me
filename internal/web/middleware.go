@@ -23,7 +23,7 @@ func compress(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// TODO: Accept-Encoding is more complex than a list of encodings. Make this better.
 		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") ||
-			strings.HasPrefix(r.URL.Path, "/api") {
+			strings.Contains(r.Header.Get("Accept"), "text/event-stream") {
 			next.ServeHTTP(w, r)
 			return
 		}
