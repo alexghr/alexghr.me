@@ -13,10 +13,8 @@ import (
 
 func cache(next http.Handler, duration time.Duration) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if Debug != "true" {
-			sec := int32(duration.Seconds())
-			w.Header().Set("Cache-Control", "public, max-age="+strconv.FormatInt(int64(sec), 10))
-		}
+		sec := int32(duration.Seconds())
+		w.Header().Set("Cache-Control", "public, max-age="+strconv.FormatInt(int64(sec), 10))
 		next.ServeHTTP(w, r)
 	})
 }

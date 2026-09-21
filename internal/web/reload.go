@@ -11,11 +11,6 @@ import (
 )
 
 func (h handler) notifyReload(w http.ResponseWriter, r *http.Request) {
-	if !isDebug() {
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-
 	flusher, ok := w.(http.Flusher)
 	if !ok {
 		http.Error(w, "streaming not supported", http.StatusInternalServerError)

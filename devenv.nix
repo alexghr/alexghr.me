@@ -20,7 +20,7 @@
           scripts.p-dev = {
             exec = ''
               watchexec -e go -r -n -- go run \
-                "-ldflags=-X alexghr.me/internal/web.Debug=true" \
+                "-ldflags=-X alexghr.me/internal/config.Debug=true" \
                 ./cmd/server
             '';
             packages = [pkgs.watchexec];

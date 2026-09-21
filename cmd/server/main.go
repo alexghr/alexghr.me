@@ -20,28 +20,31 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
 	cfg := config.FromEnv()
 
-	if err := run(logger, cfg.ListenAddr); err != nil {
+	if err := run(logger, cfg); err != nil {
 		logger.Error("server stopped", "err", err)
 		os.Exit(1)
 	}
 }
 
-func run(logger *slog.Logger, addr string) error {
+func run(logger *slog.Logger, cfg config.Config) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	h, err := web.NewHTTPHandler(logger)
+	h, err := web.NewHTTPHandler(logger, cfg.Debug)
 	if err != nil {
 		return fmt.Errorf("http handler: %w", err)
 	}
 	server := &http.Server{
 		Handler:           h,
 		ReadHeaderTimeout: 5 * time.Second,
-		WriteTimeout:      15 * time.Second,
 		IdleTimeout:       time.Minute,
 		MaxHeaderBytes:    http.DefaultMaxHeaderBytes,
 	}
 
-	listener, err := net.Listen("tcp", addr)
+	if !cfg.Debug {
+		server.WriteTimeout = 15 * time.Second
+	}
+
+	listener, err := net.Listen("tcp", cfg.ListenAddr)
 	if err != nil {
 		return fmt.Errorf("listen web UI: %w", err)
 	}

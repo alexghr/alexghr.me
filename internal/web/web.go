@@ -14,13 +14,6 @@ import (
 	"time"
 )
 
-// turned on during development in order to disable caching and loading files from disk
-var Debug = "false"
-
-func isDebug() bool {
-	return Debug == "true"
-}
-
 // set during release build
 var Version = "dev"
 
@@ -28,6 +21,7 @@ type handler struct {
 	templates *templates
 	log       *slog.Logger
 	id        string
+	debug     bool
 }
 
 type model struct {
@@ -35,13 +29,13 @@ type model struct {
 	Debug      bool
 }
 
-func NewHTTPHandler(log *slog.Logger) (http.Handler, error) {
-	static, err := newStaticFileServer()
+func NewHTTPHandler(log *slog.Logger, debug bool) (http.Handler, error) {
+	static, err := newStaticFileServer(debug)
 	if err != nil {
 		return nil, fmt.Errorf("static file server: %w", err)
 	}
 
-	templates, err := newTemplates()
+	templates, err := newTemplates(debug)
 	if err != nil {
 		return nil, fmt.Errorf("templates: %w", err)
 	}
@@ -51,12 +45,17 @@ func NewHTTPHandler(log *slog.Logger) (http.Handler, error) {
 	}
 
 	id := strconv.FormatUint(rand.Uint64(), 16)
-	h := handler{templates: templates, log: log, id: id}
+	h := handler{templates: templates, log: log, id: id, debug: debug}
+	if !debug {
+		static = cache(static, 600*time.Second)
+	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/static/", http.StripPrefix("/static/", cache(static, 600*time.Second)))
+	mux.Handle("/static/", http.StripPrefix("/static/", static))
 	mux.HandleFunc("GET /{$}", h.serveIndex)
-	mux.HandleFunc("GET /api/reload", h.notifyReload)
+	if debug {
+		mux.HandleFunc("GET /api/reload", h.notifyReload)
+	}
 
 	return compress(mux), nil
 }
@@ -70,7 +69,7 @@ func (h handler) serveIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m := model{InstanceID: h.id, Debug: isDebug()}
+	m := model{InstanceID: h.id, Debug: h.debug}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := t.ExecuteTemplate(w, "base", m); err != nil {
@@ -89,9 +88,9 @@ func (h handler) renderError(w http.ResponseWriter, r *http.Request) {
 //go:embed static
 var embeddedStaticFS embed.FS
 
-func newStaticFileServer() (http.Handler, error) {
+func newStaticFileServer(debug bool) (http.Handler, error) {
 	var files fs.FS
-	if Debug == "true" {
+	if debug {
 		root, err := os.OpenRoot("internal/web/static")
 		if err != nil {
 			return nil, fmt.Errorf("open local static/: %w", err)
@@ -120,8 +119,8 @@ type templates struct {
 	mu    sync.Mutex
 }
 
-func newTemplates() (*templates, error) {
-	if Debug == "true" {
+func newTemplates(debug bool) (*templates, error) {
+	if debug {
 		root, err := os.OpenRoot("internal/web/templates")
 		if err != nil {
 			return nil, fmt.Errorf("open local templates: %w", err)
