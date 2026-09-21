@@ -12,13 +12,15 @@ import (
 	"syscall"
 	"time"
 
+	"alexghr.me/internal/config"
 	"alexghr.me/internal/web"
 )
 
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
+	cfg := config.FromEnv()
 
-	if err := run(logger, "127.0.0.1:6571"); err != nil {
+	if err := run(logger, cfg.ListenAddr); err != nil {
 		logger.Error("server stopped", "err", err)
 		os.Exit(1)
 	}
@@ -34,7 +36,9 @@ func run(logger *slog.Logger, addr string) error {
 	server := &http.Server{
 		Handler:           h,
 		ReadHeaderTimeout: 5 * time.Second,
+		WriteTimeout:      15 * time.Second,
 		IdleTimeout:       time.Minute,
+		MaxHeaderBytes:    http.DefaultMaxHeaderBytes,
 	}
 
 	listener, err := net.Listen("tcp", addr)
