@@ -6,6 +6,7 @@
 }
 
 :root {
+  font-size: 1.125rem;
   font-family: Arial, sans-serif;
   color: var(--text-color);
 }
@@ -14,11 +15,42 @@ body {
   width: 100%;
   min-height: 100svh;
   display: flex;
-  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
 
 main {
   flex: 1;
   max-width: var(--main-max-width);
   padding: var(--main-padding);
+}
+
+footer {
+  width: 100%;
+  max-width: var(--main-max-width);
+  max-width: var(--main-max-width);
+  padding: var(--main-padding);
+  border-top: 1px solid rgba(0 0 0 / 0.1);
+  margin-block: 2rem 0;
+  font-size: 0.875rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 1rem;
+}
+
+a {
+  color: var(--text-color);
+}
+
+h1 {
+  margin-block: 4rem 2rem;
+}
+
+h2 {
+  margin-block: 4rem 1rem;
+}
+
+p {
+  margin-block: 1rem;
 }

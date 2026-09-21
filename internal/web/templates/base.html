@@ -8,11 +8,18 @@
     <link rel="stylesheet" href="/static/reset.css" />
     <link rel="stylesheet" href="/static/main.css" />
 
-    <title>Alex Gherghișan</title>
-    <meta name="title" content="Alex Gherghișan" />
+    <title>Alex Gherghisan</title>
+    <meta name="description" content="Alex Gherghisan, a software developer in London. Side projects in game development and developer tools." />
   </head>
   <body>
     <main>{{block "main" .}}{{end}}</main>
+    <footer>
+      <a rel="noopener" href="https://github.com/alexghr">GitHub</a>
+      <span aria-hidden="true" class="separator">|</span>
+      <a rel="noopener" href="https://www.linkedin.com/in/alexghr/">LinkedIn</a>
+      <span aria-hidden="true" class="separator">|</span>
+      <a rel="noopener" href="mailto:hello@alexghr.me">Email</a>
+    </footer>
 
     {{if .Debug}}
     <script type="module">
