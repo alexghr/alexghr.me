@@ -2,7 +2,9 @@ package web
 
 import (
 	"compress/gzip"
+	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -21,15 +23,24 @@ func cache(next http.Handler, duration time.Duration) http.Handler {
 
 func compress(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// TODO: Accept-Encoding is more complex than a list of encodings. Make this better.
-		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") ||
+		w.Header().Add("Vary", "Accept-Encoding")
+
+		encodings, err := parseQValues(r.Header.Get("Accept-Encoding"))
+		if err != nil ||
+			!encodings.accepts("gzip") ||
 			strings.Contains(r.Header.Get("Accept"), "text/event-stream") {
 			next.ServeHTTP(w, r)
 			return
 		}
 
 		w.Header().Set("Content-Encoding", "gzip")
-		w.Header().Set("Vary", "Accept-Encoding")
+
+		if r.Method == http.MethodHead {
+			head := &headResponseWriter{w, false}
+			defer head.Close()
+			next.ServeHTTP(head, r)
+			return
+		}
 
 		gz := gzip.NewWriter(w)
 		defer gz.Close()
@@ -59,4 +70,83 @@ func (w compressedResponseWriter) Write(p []byte) (int, error) {
 	// same as WriteHeader
 	w.Header().Del("Content-Length")
 	return w.writer.Write(p)
+}
+
+type headResponseWriter struct {
+	http.ResponseWriter
+	headerSent bool
+}
+
+func (w *headResponseWriter) WriteHeader(status int) {
+	if w.headerSent {
+		return
+	}
+
+	w.Header().Del("Content-Length")
+	w.ResponseWriter.WriteHeader(status)
+	w.headerSent = true
+}
+
+func (w *headResponseWriter) Write(p []byte) (int, error) {
+	w.WriteHeader(http.StatusOK)
+	// send to /dev/null
+	return len(p), nil
+}
+
+func (w *headResponseWriter) Close() {
+	w.WriteHeader(http.StatusOK)
+}
+
+type qvalue struct {
+	weight float32
+	value  string
+}
+
+type qvalues struct {
+	values []qvalue
+}
+
+func parseQValues(header string) (qvalues, error) {
+	values := make([]qvalue, 0)
+
+	for item := range strings.SplitSeq(strings.ToLower(header), ",") {
+		var weight float32
+		value, weightStr, found := strings.Cut(strings.TrimSpace(item), ";")
+		if !found {
+			weight = 1.0
+		} else {
+			q := strings.TrimSpace(weightStr)
+			if !strings.HasPrefix(q, "q=") {
+				return qvalues{}, fmt.Errorf("invalid weight: %s", item)
+			}
+
+			parsed, err := strconv.ParseFloat(q[2:], 32)
+			if err != nil {
+				return qvalues{}, fmt.Errorf("invalid weight %s: %w", item, err)
+			}
+			if parsed < 0 || parsed > 1 || math.IsNaN(parsed) {
+				return qvalues{}, fmt.Errorf("weight out of range %s", item)
+			}
+			weight = float32(parsed)
+		}
+		values = append(values, qvalue{value: strings.TrimSpace(value), weight: weight})
+	}
+
+	return qvalues{values: values}, nil
+}
+
+func (q qvalues) accepts(value string) bool {
+	for _, entry := range q.values {
+		if entry.value == strings.ToLower(value) {
+			return entry.weight > 0
+		}
+	}
+
+	for _, entry := range q.values {
+		if entry.value == "*" && entry.weight > 0 {
+			return true
+		}
+	}
+
+	return false
 }
