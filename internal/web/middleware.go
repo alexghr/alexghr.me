@@ -11,6 +11,14 @@ import (
 	"time"
 )
 
+func securityHeaders(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
+		w.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; require-trusted-types-for 'script'")
+		next.ServeHTTP(w, r)
+	})
+}
+
 func cache(next http.Handler, duration time.Duration) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sec := int32(duration.Seconds())

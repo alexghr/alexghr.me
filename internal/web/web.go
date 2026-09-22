@@ -61,7 +61,12 @@ func NewHTTPHandler(logger *slog.Logger, debug bool, rateLimitBurst uint64, rate
 		mux.HandleFunc("GET /api/reload", h.notifyReload)
 	}
 
-	return accessLog(logger, rateLimit.wrap(compress(mux))), nil
+	var result http.Handler = accessLog(logger, rateLimit.wrap(compress(mux)))
+	if !debug {
+		// Development uses inline JavaScript and a reload script.
+		result = securityHeaders(result)
+	}
+	return result, nil
 }
 
 func (h handler) serveIndex(w http.ResponseWriter, r *http.Request) {
