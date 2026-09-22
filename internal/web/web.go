@@ -4,6 +4,7 @@ import (
 	"embed"
 	"fmt"
 	"html/template"
+	"io"
 	"io/fs"
 	"log/slog"
 	"math/rand/v2"
@@ -55,6 +56,7 @@ func NewHTTPHandler(logger *slog.Logger, debug bool, rateLimitBurst uint64, rate
 	mux := http.NewServeMux()
 	mux.Handle("/static/", http.StripPrefix("/static/", static))
 	mux.HandleFunc("GET /{$}", h.serveIndex)
+	mux.HandleFunc("GET /robots.txt", h.serveRobots)
 	if debug {
 		mux.HandleFunc("GET /api/reload", h.notifyReload)
 	}
@@ -77,6 +79,13 @@ func (h handler) serveIndex(w http.ResponseWriter, r *http.Request) {
 	if err := t.ExecuteTemplate(w, "base", m); err != nil {
 		h.logger.ErrorContext(r.Context(), "serve index", "method", r.Method, "path", r.URL.Path, "error", err)
 	}
+}
+
+func (h handler) serveRobots(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-type", "text/plain; charset=utf-8")
+	io.WriteString(w, `User-agent: *
+Disallow: /api/
+`)
 }
 
 func (h handler) renderError(w http.ResponseWriter, r *http.Request) {
