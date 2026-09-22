@@ -57,27 +57,6 @@
   };
 
   outputs = {
-    server = pkgs.buildGoModule rec {
-      pname = "server";
-      version = "0.1.0";
-      src = lib.cleanSource ./.;
-      vendorHash = null;
-      env.CGO_ENABLED = "0";
-      ldflags =
-        let
-          version = lib.removeSuffix "\n" (builtins.readFile ./VERSION);
-        in
-          [
-            "-X alexghr.me/internal/web.Version=${version}"
-          ];
-      nativeCheckInputs = [pkgs.go];
-      subPackages = [ "cmd/server" ];
-      checkPhase = ''
-        runHook preCheck
-        go vet ./...
-        go test -parallel 8 ./...
-        runHook postCheck
-      '';
-    };
+    server = pkgs.callPackage ./nix/package.nix {};
   };
 }
