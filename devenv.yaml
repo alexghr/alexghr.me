@@ -6,3 +6,5 @@ inputs:
   agents:
     url: github:alexghr/agents.nix
     flake: false
+  git-hooks:
+    url: github:cachix/git-hooks.nix
