@@ -29,7 +29,7 @@ func main() {
 func run(logger *slog.Logger, cfg config.Config) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	h, err := web.NewHTTPHandler(logger, cfg.Debug)
+	h, err := web.NewHTTPHandler(logger, cfg.Debug, cfg.RateLimitBurst, cfg.RateLimitRefill)
 	if err != nil {
 		return fmt.Errorf("http handler: %w", err)
 	}

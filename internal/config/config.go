@@ -2,11 +2,14 @@ package config
 
 import (
 	"os"
+	"strconv"
 )
 
 type Config struct {
-	ListenAddr string
-	Debug      bool
+	ListenAddr      string
+	RateLimitBurst  uint64
+	RateLimitRefill float64
+	Debug           bool
 }
 
 func FromEnv() Config {
@@ -15,9 +18,21 @@ func FromEnv() Config {
 		address = "127.0.0.1:6571"
 	}
 
+	rateLimitBurst, err := strconv.ParseUint(os.Getenv("RATE_LIMIT_BURST"), 10, 32)
+	if err != nil {
+		rateLimitBurst = 500
+	}
+
+	rateLimitRefill, err := strconv.ParseFloat(os.Getenv("RATE_LIMIT_REFILL"), 32)
+	if err != nil {
+		rateLimitRefill = 10 // per second
+	}
+
 	return Config{
-		ListenAddr: address,
-		Debug:      Debug == "true",
+		ListenAddr:      address,
+		RateLimitBurst:  rateLimitBurst,
+		RateLimitRefill: rateLimitRefill,
+		Debug:           Debug == "true",
 	}
 }
 

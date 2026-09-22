@@ -19,7 +19,7 @@ var Version = "dev"
 
 type handler struct {
 	templates *templates
-	log       *slog.Logger
+	logger    *slog.Logger
 	id        string
 	debug     bool
 }
@@ -29,7 +29,7 @@ type model struct {
 	Debug      bool
 }
 
-func NewHTTPHandler(log *slog.Logger, debug bool) (http.Handler, error) {
+func NewHTTPHandler(logger *slog.Logger, debug bool, rateLimitBurst uint64, rateLimitRefill float64) (http.Handler, error) {
 	static, err := newStaticFileServer(debug)
 	if err != nil {
 		return nil, fmt.Errorf("static file server: %w", err)
@@ -40,15 +40,17 @@ func NewHTTPHandler(log *slog.Logger, debug bool) (http.Handler, error) {
 		return nil, fmt.Errorf("templates: %w", err)
 	}
 
-	if log == nil {
-		log = slog.Default()
+	if logger == nil {
+		logger = slog.Default()
 	}
 
 	id := strconv.FormatUint(rand.Uint64(), 16)
-	h := handler{templates: templates, log: log, id: id, debug: debug}
+	h := handler{templates: templates, logger: logger, id: id, debug: debug}
 	if !debug {
 		static = cache(static, 600*time.Second)
 	}
+
+	rateLimit := newLeakyBucket(logger, float64(rateLimitBurst), rateLimitRefill)
 
 	mux := http.NewServeMux()
 	mux.Handle("/static/", http.StripPrefix("/static/", static))
@@ -57,7 +59,7 @@ func NewHTTPHandler(log *slog.Logger, debug bool) (http.Handler, error) {
 		mux.HandleFunc("GET /api/reload", h.notifyReload)
 	}
 
-	return compress(mux), nil
+	return rateLimit.wrap(compress(mux)), nil
 }
 
 func (h handler) serveIndex(w http.ResponseWriter, r *http.Request) {
@@ -73,7 +75,7 @@ func (h handler) serveIndex(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := t.ExecuteTemplate(w, "base", m); err != nil {
-		h.log.ErrorContext(r.Context(), "serve index", "method", r.Method, "path", r.URL.Path, "error", err)
+		h.logger.ErrorContext(r.Context(), "serve index", "method", r.Method, "path", r.URL.Path, "error", err)
 	}
 }
 
@@ -81,7 +83,7 @@ func (h handler) renderError(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(500)
 	_, err := w.Write([]byte("<body>there was an error</body>"))
 	if err != nil {
-		h.log.ErrorContext(r.Context(), "serve index", "method", r.Method, "path", r.URL.Path, "error", err)
+		h.logger.ErrorContext(r.Context(), "serve index", "method", r.Method, "path", r.URL.Path, "error", err)
 	}
 }
 
