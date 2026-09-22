@@ -3,3 +3,5 @@
 .devenv/
 .cache/
 /server
+# git-hooks
+.pre-commit-config.yaml
