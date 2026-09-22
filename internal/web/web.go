@@ -59,7 +59,7 @@ func NewHTTPHandler(logger *slog.Logger, debug bool, rateLimitBurst uint64, rate
 		mux.HandleFunc("GET /api/reload", h.notifyReload)
 	}
 
-	return rateLimit.wrap(compress(mux)), nil
+	return accessLog(logger, rateLimit.wrap(compress(mux))), nil
 }
 
 func (h handler) serveIndex(w http.ResponseWriter, r *http.Request) {
