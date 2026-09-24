@@ -3,5 +3,6 @@
 .devenv/
 .cache/
 /server
+db.sqlite3
 # git-hooks
 .pre-commit-config.yaml

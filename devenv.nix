@@ -20,6 +20,7 @@
           pkgs.git
           pkgs.gh
           pkgs.gcc
+          pkgs.sqlite
           agents.codex
         ];
 
