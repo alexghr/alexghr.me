@@ -2,6 +2,7 @@
   lib,
   buildGoModule,
   go,
+  gcc,
 }:
 let
   version = lib.removeSuffix "\n" (builtins.readFile ../VERSION);
@@ -11,11 +12,12 @@ buildGoModule rec {
 
   pname = "server";
   src = lib.cleanSource ../.;
-  vendorHash = null;
-  env.CGO_ENABLED = "0";
+  vendorHash = "sha256-IUyZTlMqht5sx010M3kc96okTBsRrL1e+6m1VVWvK0k=";
+  env.CGO_ENABLED = "1";
   ldflags = [
     "-X alexghr.me/internal/web.Version=${version}"
   ];
+  buildInputs = [ gcc ];
   nativeCheckInputs = [ go ];
   subPackages = [ "cmd/server" ];
   checkPhase = ''

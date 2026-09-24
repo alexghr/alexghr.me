@@ -9,6 +9,7 @@ type Config struct {
 	ListenAddr      string
 	RateLimitBurst  uint64
 	RateLimitRefill float64
+	StateDir        string
 	Debug           bool
 }
 
@@ -28,10 +29,16 @@ func FromEnv() Config {
 		rateLimitRefill = 10 // per second
 	}
 
+	stateDir := os.Getenv("STATE_DIR")
+	if stateDir == "" {
+		stateDir = "."
+	}
+
 	return Config{
 		ListenAddr:      address,
 		RateLimitBurst:  rateLimitBurst,
 		RateLimitRefill: rateLimitRefill,
+		StateDir:        stateDir,
 		Debug:           Debug == "true",
 	}
 }

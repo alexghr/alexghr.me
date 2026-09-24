@@ -19,6 +19,7 @@
         packages = [
           pkgs.git
           pkgs.gh
+          pkgs.gcc
           agents.codex
         ];
 
@@ -43,7 +44,10 @@
       };
     ci.module = { pkgs, ... }: {
       # languages.go.enable brings in a bunch of tools which don't matter in CI (e.g. gopls)
-      packages = [ pkgs.go ];
+      packages = [
+        pkgs.go
+        pkgs.gcc
+      ];
       env.GOTOOLCHAIN = "local";
     };
   };

@@ -9,10 +9,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
 	"alexghr.me/internal/config"
+	"alexghr.me/internal/state"
 	"alexghr.me/internal/web"
 )
 
@@ -21,7 +23,7 @@ func main() {
 	cfg := config.FromEnv()
 
 	if err := run(logger, cfg); err != nil {
-		logger.Error("server stopped", "err", err)
+		logger.Error("server stopped", "error", err)
 		os.Exit(1)
 	}
 }
@@ -29,6 +31,22 @@ func main() {
 func run(logger *slog.Logger, cfg config.Config) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+
+	db, err := state.Open(ctx, filepath.Join(cfg.StateDir, "db.sqlite3"), 1)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err := db.Close(); err != nil {
+			logger.Error("close database", "error", err)
+		}
+	}()
+
+	if err := db.Migrate(ctx); err != nil {
+		return fmt.Errorf("migrate db: %w", err)
+	}
+
 	h, err := web.NewHTTPHandler(logger, cfg.Debug, cfg.RateLimitBurst, cfg.RateLimitRefill)
 	if err != nil {
 		return fmt.Errorf("http handler: %w", err)
