@@ -20,7 +20,11 @@ import (
 
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
-	cfg := config.FromEnv()
+	cfg, err := config.FromEnv()
+	if err != nil {
+		logger.Error("config issue", "error", err)
+		os.Exit(1)
+	}
 
 	if err := run(logger, cfg); err != nil {
 		logger.Error("server stopped", "error", err)
@@ -47,7 +51,7 @@ func run(logger *slog.Logger, cfg config.Config) error {
 		return fmt.Errorf("migrate db: %w", err)
 	}
 
-	h, err := web.NewHTTPHandler(logger, cfg.Debug, cfg.RateLimitBurst, cfg.RateLimitRefill)
+	h, err := web.NewHTTPHandler(logger, cfg.Debug, cfg.RateLimitBurst, cfg.RateLimitRefill, cfg.AdminPassword)
 	if err != nil {
 		return fmt.Errorf("http handler: %w", err)
 	}

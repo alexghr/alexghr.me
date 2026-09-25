@@ -30,7 +30,7 @@ type model struct {
 	Debug      bool
 }
 
-func NewHTTPHandler(logger *slog.Logger, debug bool, rateLimitBurst uint64, rateLimitRefill float64) (http.Handler, error) {
+func NewHTTPHandler(logger *slog.Logger, debug bool, rateLimitBurst uint64, rateLimitRefill float64, adminPassword string) (http.Handler, error) {
 	static, err := newStaticFileServer(debug)
 	if err != nil {
 		return nil, fmt.Errorf("static file server: %w", err)
@@ -53,6 +53,11 @@ func NewHTTPHandler(logger *slog.Logger, debug bool, rateLimitBurst uint64, rate
 
 	rateLimit := newLeakyBucket(logger, float64(rateLimitBurst), rateLimitRefill)
 
+	adminPasswordBytes, err := decodePassword(adminPassword)
+	if err != nil {
+		return nil, fmt.Errorf("decode admin password: %w", err)
+	}
+
 	mux := http.NewServeMux()
 	mux.Handle("/static/", http.StripPrefix("/static/", static))
 	mux.HandleFunc("GET /{$}", h.serveIndex)
@@ -60,6 +65,8 @@ func NewHTTPHandler(logger *slog.Logger, debug bool, rateLimitBurst uint64, rate
 	if debug {
 		mux.HandleFunc("GET /api/reload", h.notifyReload)
 	}
+
+	mux.Handle("GET /admin", basicAuth(http.HandlerFunc(h.serveAdmin), adminPasswordBytes))
 
 	var result http.Handler = accessLog(logger, rateLimit.wrap(compress(mux)))
 	if !debug {
@@ -91,6 +98,11 @@ func (h handler) serveRobots(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, `User-agent: *
 Disallow: /api/
 `)
+}
+
+func (h handler) serveAdmin(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	io.WriteString(w, "<html><body>admin</body></html>")
 }
 
 func (h handler) renderError(w http.ResponseWriter, r *http.Request) {

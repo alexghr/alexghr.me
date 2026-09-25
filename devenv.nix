@@ -26,6 +26,8 @@
 
         scripts.p-dev = {
           exec = ''
+            # just a dev password
+            export ADMIN_PASS="JDJhJDEwJGFUNVpoN3k2MkU3ejQyZ1c3NjI4ZGVueFVuWU93Lnp5U1g1MVVINXV5VlhrSFJIcXBDcXBx"
             watchexec -e go -r -n -- go run \
               "-ldflags=-X alexghr.me/internal/config.Debug=true" \
               ./cmd/server

@@ -2,6 +2,7 @@ package web
 
 import (
 	"compress/gzip"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"math"
@@ -9,7 +10,49 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
+
+const defaultUser = "admin"
+
+func basicAuth(next http.Handler, hashedPassword []byte) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user, pw, ok := r.BasicAuth()
+
+		if !ok {
+			w.Header().Add("WWW-Authenticate", "Basic realm=\"admin\"")
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		if err := bcrypt.CompareHashAndPassword(hashedPassword, []byte(pw)); err != nil || user != defaultUser {
+			w.Header().Add("WWW-Authenticate", "Basic realm=\"admin\"")
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func HashPassword(pw []byte) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword(pw, bcrypt.DefaultCost)
+	if err != nil {
+		return "", fmt.Errorf("hash password: %w", err)
+	}
+
+	return base64.URLEncoding.EncodeToString(hash), nil
+}
+
+func decodePassword(pw string) ([]byte, error) {
+	bytes, err := base64.URLEncoding.DecodeString(pw)
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes, nil
+}
 
 func securityHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
