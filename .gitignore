@@ -4,6 +4,6 @@
 .cache/
 /server
 /mkpass
-db.sqlite3
+db.sqlite3*
 # git-hooks
 .pre-commit-config.yaml

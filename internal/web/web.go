@@ -13,6 +13,8 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/alexghr/alexghr.me/internal/state"
 )
 
 // set during release build
@@ -22,6 +24,7 @@ type handler struct {
 	templates *templates
 	logger    *slog.Logger
 	id        string
+	store     *state.Store
 	debug     bool
 }
 
@@ -30,7 +33,7 @@ type model struct {
 	Debug      bool
 }
 
-func NewHTTPHandler(logger *slog.Logger, debug bool, rateLimitBurst uint64, rateLimitRefill float64, adminPassword string) (http.Handler, error) {
+func NewHTTPHandler(store *state.Store, logger *slog.Logger, debug bool, rateLimitBurst uint64, rateLimitRefill float64, adminPassword string) (http.Handler, error) {
 	static, err := newStaticFileServer(debug)
 	if err != nil {
 		return nil, fmt.Errorf("static file server: %w", err)
@@ -46,7 +49,7 @@ func NewHTTPHandler(logger *slog.Logger, debug bool, rateLimitBurst uint64, rate
 	}
 
 	id := strconv.FormatUint(rand.Uint64(), 16)
-	h := handler{templates: templates, logger: logger, id: id, debug: debug}
+	h := handler{store: store, templates: templates, logger: logger, id: id, debug: debug}
 	if !debug {
 		static = cache(static, 600*time.Second)
 	}
@@ -62,11 +65,13 @@ func NewHTTPHandler(logger *slog.Logger, debug bool, rateLimitBurst uint64, rate
 	mux.Handle("/static/", http.StripPrefix("/static/", static))
 	mux.HandleFunc("GET /{$}", h.serveIndex)
 	mux.HandleFunc("GET /robots.txt", h.serveRobots)
+	mux.HandleFunc("GET /asset/{hash}/{filename}", h.serveAsset)
 	if debug {
 		mux.HandleFunc("GET /api/reload", h.notifyReload)
 	}
 
-	mux.Handle("GET /admin", basicAuth(http.HandlerFunc(h.serveAdmin), adminPasswordBytes))
+	admin := basicAuth(adminHandler(h), adminPasswordBytes)
+	mux.Handle("/admin/", http.StripPrefix("/admin", admin))
 
 	var result http.Handler = accessLog(logger, rateLimit.wrap(compress(mux)))
 	if !debug {
@@ -97,12 +102,8 @@ func (h handler) serveRobots(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-type", "text/plain; charset=utf-8")
 	io.WriteString(w, `User-agent: *
 Disallow: /api/
+Disallow: /admin
 `)
-}
-
-func (h handler) serveAdmin(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	io.WriteString(w, "<html><body>admin</body></html>")
 }
 
 func (h handler) renderError(w http.ResponseWriter, r *http.Request) {

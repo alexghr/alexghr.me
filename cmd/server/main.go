@@ -51,7 +51,7 @@ func run(logger *slog.Logger, cfg config.Config) error {
 		return fmt.Errorf("migrate db: %w", err)
 	}
 
-	h, err := web.NewHTTPHandler(logger, cfg.Debug, cfg.RateLimitBurst, cfg.RateLimitRefill, cfg.AdminPassword)
+	h, err := web.NewHTTPHandler(db, logger, cfg.Debug, cfg.RateLimitBurst, cfg.RateLimitRefill, cfg.AdminPassword)
 	if err != nil {
 		return fmt.Errorf("http handler: %w", err)
 	}

@@ -1,0 +1,26 @@
+{{define "main"}}
+<h1>Admin page</h1>
+<form action="/admin/api/upload" method="post" enctype="multipart/form-data">
+  <label for="file">File</label>
+  <input type="file" id="file" name="file" required>
+  <button type="submit">Upload</button>
+</form>
+<h2>Assets</h2>
+<ul>
+  {{range .Assets}}
+  <li><a href="{{.URL}}">{{.Name}}</a></li>
+  {{else}}
+  <li>No assets uploaded yet.</li>
+  {{end}}
+</ul>
+{{end}}
+
+{{define "headEnd"}}
+<style>
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+</style>
+{{end}}
