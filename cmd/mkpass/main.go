@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"alexghr.me/internal/web"
+	"github.com/alexghr/alexghr.me/internal/web"
 	"golang.org/x/term"
 )
 

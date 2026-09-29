@@ -13,9 +13,9 @@ import (
 	"syscall"
 	"time"
 
-	"alexghr.me/internal/config"
-	"alexghr.me/internal/state"
-	"alexghr.me/internal/web"
+	"github.com/alexghr/alexghr.me/internal/config"
+	"github.com/alexghr/alexghr.me/internal/state"
+	"github.com/alexghr/alexghr.me/internal/web"
 )
 
 func main() {

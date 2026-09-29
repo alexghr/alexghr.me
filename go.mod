@@ -1,4 +1,4 @@
-module alexghr.me
+module github.com/alexghr/alexghr.me
 
 go 1.26.5
 

@@ -15,7 +15,7 @@ buildGoModule rec {
   vendorHash = "sha256-IUyZTlMqht5sx010M3kc96okTBsRrL1e+6m1VVWvK0k=";
   env.CGO_ENABLED = "1";
   ldflags = [
-    "-X alexghr.me/internal/web.Version=${version}"
+    "-X github.com/alexghr/alexghr.me/internal/web.Version=${version}"
   ];
   buildInputs = [ gcc ];
   nativeCheckInputs = [ go ];
