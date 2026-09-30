@@ -42,11 +42,13 @@ in
 
       environment = cfg.environment // {
         LISTEN_ADDR = cfg.listenAddress;
+        STATE_DIR = "/var/lib/alexghr.me";
       };
 
       serviceConfig = {
         ExecStart = "${cfg.package}/bin/server";
         DynamicUser = true;
+        StateDirectory = "alexghr.me";
         Restart = "on-failure";
         RestartSec = "5s";
         TimeoutStopSec = "10s";
