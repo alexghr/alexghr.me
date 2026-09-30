@@ -20,6 +20,18 @@ in
       type = lib.types.str;
       default = "127.0.0.1:6571";
     };
+
+    environment = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
+      default = { };
+      description = "Environment variables for the service. Use environmentFile for sensitive values.";
+    };
+
+    environmentFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "Path to a runtime environment file.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -28,7 +40,9 @@ in
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
 
-      environment.LISTEN_ADDR = cfg.listenAddress;
+      environment = cfg.environment // {
+        LISTEN_ADDR = cfg.listenAddress;
+      };
 
       serviceConfig = {
         ExecStart = "${cfg.package}/bin/server";
@@ -41,6 +55,9 @@ in
         ProtectSystem = "strict";
         ProtectHome = true;
         PrivateTmp = true;
+      }
+      // lib.optionalAttrs (cfg.environmentFile != null) {
+        EnvironmentFile = cfg.environmentFile;
       };
     };
   };
