@@ -17,9 +17,6 @@ import (
 	"github.com/alexghr/alexghr.me/internal/state"
 )
 
-// set during release build
-var Version = "dev"
-
 type handler struct {
 	templates *templates
 	logger    *slog.Logger

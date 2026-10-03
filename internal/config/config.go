@@ -53,3 +53,6 @@ func FromEnv() (Config, error) {
 
 // Debug is set to "true" by the development build's linker flags.
 var Debug = "false"
+
+// set during release build
+var Version = "dev"

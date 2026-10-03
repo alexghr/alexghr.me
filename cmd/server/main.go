@@ -76,7 +76,7 @@ func run(logger *slog.Logger, cfg config.Config) error {
 		serveErr <- server.Serve(listener)
 	}()
 
-	logger.Info("website listening", "version", web.Version, "url", "http://"+listener.Addr().String())
+	logger.Info("website listening", "version", config.Version, "url", "http://"+listener.Addr().String())
 
 	select {
 	case err := <-serveErr:
