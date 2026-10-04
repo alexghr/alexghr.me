@@ -3,11 +3,14 @@ package state
 import (
 	"context"
 	"crypto/sha256"
+	"database/sql"
 	"fmt"
 )
 
+type AssetID []byte
+
 type Asset struct {
-	ID          []byte
+	ID          AssetID
 	Name        string
 	ContentType string
 	Data        []byte
@@ -35,9 +38,29 @@ func (s *Store) ListAssets(ctx context.Context) ([]Asset, error) {
 }
 
 func (s *Store) AddAsset(ctx context.Context, name, contentType string, data []byte) (Asset, error) {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return Asset{}, fmt.Errorf("begin tx: %w", err)
+	}
+
+	defer tx.Rollback()
+
+	asset, err := s.addAsset(ctx, tx, name, contentType, data)
+	if err != nil {
+		return Asset{}, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return Asset{}, fmt.Errorf("commit tx: %w", err)
+	}
+
+	return asset, nil
+}
+
+func (s *Store) addAsset(ctx context.Context, tx *sql.Tx, name, contentType string, data []byte) (Asset, error) {
 	hash := sha256.Sum256(data)
 
-	_, err := s.db.ExecContext(ctx,
+	_, err := tx.ExecContext(ctx,
 		`INSERT INTO assets(id, name, content_type, data) 
 		VALUES(?, ?, ?, ?) 
 		ON CONFLICT(id) DO NOTHING`, hash[:], name, contentType, data)
