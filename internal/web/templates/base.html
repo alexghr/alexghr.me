@@ -8,11 +8,11 @@
     <link rel="stylesheet" href="/static/reset.css" />
     <link rel="stylesheet" href="/static/main.css" />
 
-    <link rel="canonical" href="https://www.alexghr.me/" />
+    {{block "canonical" .}}<link rel="canonical" href="https://www.alexghr.me/" />{{end}}
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
 
-    <title>Alex Gherghisan</title>
-    <meta name="description" content="Alex Gherghisan, a software developer in London. Side projects in game development and developer tools." />
+    {{block "title" .}}<title>Alex Gherghisan</title>{{end}}
+    {{block "description" .}}<meta name="description" content="Alex Gherghisan, a software developer in London. Side projects in game development and developer tools." />{{end}}
 
     {{block "headEnd" .}}{{end}}
   </head>

@@ -1,0 +1,16 @@
+{{define "title"}}<title>Blog — Alex Gherghisan</title>{{end}}
+{{define "description"}}<meta name="description" content="Posts by Alex Gherghisan." />{{end}}
+{{define "canonical"}}<link rel="canonical" href="https://www.alexghr.me/blog/" />{{end}}
+{{define "main"}}
+<nav><a href="/">Home</a></nav>
+<h1>Blog</h1>
+{{range .Posts}}
+<section>
+  <h2><a href="/blog/{{.Slug}}/">{{.Title}}</a></h2>
+  {{if not .PublishedAt.IsZero}}<time datetime="{{.PublishedAt.Format "2006-01-02"}}">{{.PublishedAt.Format "2 January 2006"}}</time>{{end}}
+  {{if .Description}}<p>{{.Description}}</p>{{end}}
+</section>
+{{else}}
+<p>No posts yet.</p>
+{{end}}
+{{end}}
