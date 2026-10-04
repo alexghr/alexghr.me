@@ -63,6 +63,7 @@ func NewHTTPHandler(store *state.Store, logger *slog.Logger, debug bool, rateLim
 	mux.HandleFunc("GET /{$}", h.serveIndex)
 	mux.HandleFunc("GET /blog/{$}", h.servePosts)
 	mux.HandleFunc("GET /blog/{slug}/{$}", h.servePost)
+	mux.HandleFunc("GET /blog/{slug}/assets/{path...}", h.servePostAsset)
 	mux.HandleFunc("GET /robots.txt", h.serveRobots)
 	mux.HandleFunc("GET /asset/{hash}/{filename}", h.serveAsset)
 	if debug {
