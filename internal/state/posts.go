@@ -16,23 +16,33 @@ const (
 	PostBodyHtmlTemplate PostBodyType = "html-template"
 )
 
-type PostAsset struct {
-	ID          AssetID
+type PostMetadataInit struct {
+	Slug        string     `json:"slug"`
+	Title       string     `json:"title"`
+	Description string     `json:"description"`
+	PublishedAt *time.Time `json:"publishedAt"`
+	UpdatedAt   *time.Time `json:"updatedAt"`
+	Tags        []string   `json:"tags"`
+}
+
+type PostAssetInit struct {
 	Path        string
 	ContentType string
 	Data        []byte
 }
 
 type PostInit struct {
-	Slug        string
-	Title       string
-	Description string
-	Body        string
-	BodyType    PostBodyType
-	PublishedAt *time.Time
-	UpdatedAt   *time.Time
-	Tags        []string
-	Assets      []PostAsset
+	PostMetadataInit
+	Body     string
+	BodyType PostBodyType
+	Assets   []PostAssetInit
+}
+
+type PostAsset struct {
+	ID          AssetID
+	Path        string
+	ContentType string
+	Data        []byte
 }
 
 type PostMetadata struct {
@@ -141,7 +151,7 @@ func (s *Store) upsertPostTags(ctx context.Context, tx *sql.Tx, postID int64, po
 	return tags, nil
 }
 
-func (s *Store) addPostAssets(ctx context.Context, tx *sql.Tx, postID int64, postAssets []PostAsset) ([]AssetID, error) {
+func (s *Store) addPostAssets(ctx context.Context, tx *sql.Tx, postID int64, postAssets []PostAssetInit) ([]AssetID, error) {
 	assets := make([]AssetID, 0, len(postAssets))
 
 	for _, postAsset := range postAssets {
