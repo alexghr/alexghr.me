@@ -3,6 +3,7 @@ package state
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -63,7 +64,24 @@ type Post struct {
 	Assets []PostAsset
 }
 
+func (s *Store) UpsertPost(ctx context.Context, post PostInit) (Post, error) {
+	return s.savePost(ctx, post, true)
+}
+
 func (s *Store) AddPost(ctx context.Context, post PostInit) (Post, error) {
+	return s.savePost(ctx, post, false)
+}
+
+func (s *Store) savePost(ctx context.Context, post PostInit, upsert bool) (Post, error) {
+	if strings.TrimSpace(post.Slug) == "" {
+		return Post{}, fmt.Errorf("empty slug")
+	}
+	if strings.TrimSpace(post.Title) == "" {
+		return Post{}, errors.New("empty title")
+	}
+	if post.BodyType != PostBodyHtml && post.BodyType != PostBodyHtmlTemplate {
+		return Post{}, fmt.Errorf("unsupported post body type %q", post.BodyType)
+	}
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return Post{}, fmt.Errorf("begin tx: %w", err)
@@ -71,28 +89,67 @@ func (s *Store) AddPost(ctx context.Context, post PostInit) (Post, error) {
 
 	defer tx.Rollback()
 
+	var existing Post
+	if upsert {
+		existing, err = s.getPost(ctx, tx, post.Slug)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return Post{}, err
+		}
+		if err == nil {
+			// take a snapshot of the Post
+			if err := snapshotPost(ctx, tx, existing.ID); err != nil {
+				return Post{}, err
+			}
+		}
+	}
+
 	var publishedAt, updatedAt sql.NullString
 	if post.PublishedAt != nil {
 		publishedAt = sql.NullString{String: post.PublishedAt.UTC().Format(time.RFC3339Nano), Valid: true}
 	}
 	if post.UpdatedAt != nil {
+		// updated_at could be passed in for posts that got imported from the old site
 		updatedAt = sql.NullString{String: post.UpdatedAt.UTC().Format(time.RFC3339Nano), Valid: true}
 	}
 
-	res, err := tx.ExecContext(ctx,
-		`INSERT INTO posts(slug, title, description, body, body_type, published_at, updated_at)
+	var id int64
+	if existing.ID != 0 {
+		// it's an update so fill in updated_at
+		if post.UpdatedAt == nil {
+			updatedAt = sql.NullString{String: time.Now().UTC().Format(time.RFC3339Nano), Valid: true}
+		}
+
+		_, err = tx.ExecContext(ctx, `UPDATE posts SET title = ?, description = ?, body = ?, body_type = ?,
+			published_at = COALESCE(?, published_at), updated_at = ? WHERE id = ?`,
+			post.Title, post.Description, post.Body, post.BodyType, publishedAt, updatedAt, existing.ID)
+		if err != nil {
+			return Post{}, fmt.Errorf("update post: %w", err)
+		}
+
+		// delete old tags and assets
+		for _, query := range []string{"DELETE FROM post_tags WHERE post_id = ?", "DELETE FROM post_assets WHERE post_id = ?"} {
+			if _, err := tx.ExecContext(ctx, query, existing.ID); err != nil {
+				return Post{}, fmt.Errorf("replace post associations: %w", err)
+			}
+		}
+
+		id = existing.ID
+	} else {
+		res, err := tx.ExecContext(ctx,
+			`INSERT INTO posts(slug, title, description, body, body_type, published_at, updated_at)
 		VALUES(?, ?, ?, ?, ?, ?, ?)`,
-		post.Slug, post.Title, post.Description, post.Body, post.BodyType,
-		publishedAt, updatedAt,
-	)
+			post.Slug, post.Title, post.Description, post.Body, post.BodyType,
+			publishedAt, updatedAt,
+		)
 
-	if err != nil {
-		return Post{}, fmt.Errorf("insert post: %w", err)
-	}
+		if err != nil {
+			return Post{}, fmt.Errorf("insert post: %w", err)
+		}
 
-	id, err := res.LastInsertId()
-	if err != nil {
-		return Post{}, fmt.Errorf("get inserted post id: %w", err)
+		id, err = res.LastInsertId()
+		if err != nil {
+			return Post{}, fmt.Errorf("get inserted post id: %w", err)
+		}
 	}
 
 	_, err = s.upsertPostTags(ctx, tx, id, post.Tags)
@@ -112,6 +169,29 @@ func (s *Store) AddPost(ctx context.Context, post PostInit) (Post, error) {
 	}
 
 	return stored, nil
+}
+
+func snapshotPost(ctx context.Context, tx *sql.Tx, postID int64) error {
+	res, err := tx.ExecContext(ctx, `INSERT INTO post_revisions
+		(post_id, slug, title, description, body, body_type, created_at, published_at, updated_at)
+		SELECT id, slug, title, description, body, body_type, created_at, published_at, updated_at
+		FROM posts WHERE id = ?`, postID)
+	if err != nil {
+		return fmt.Errorf("save post revision: %w", err)
+	}
+	revisionID, err := res.LastInsertId()
+	if err != nil {
+		return fmt.Errorf("get revision id: %w", err)
+	}
+	for _, query := range []string{
+		`INSERT INTO post_revision_tags(revision_id, tag_id) SELECT ?, tag_id FROM post_tags WHERE post_id = ?`,
+		`INSERT INTO post_revision_assets(revision_id, asset_id, local_path) SELECT ?, asset_id, local_path FROM post_assets WHERE post_id = ?`,
+	} {
+		if _, err := tx.ExecContext(ctx, query, revisionID, postID); err != nil {
+			return fmt.Errorf("save revision associations: %w", err)
+		}
+	}
+	return nil
 }
 
 func (s *Store) upsertPostTags(ctx context.Context, tx *sql.Tx, postID int64, postTags []string) ([]int64, error) {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -15,16 +16,20 @@ import (
 	"github.com/alexghr/alexghr.me/internal/state"
 )
 
+var errPostTitleMismatch = errors.New("post title mismatch")
+
 func main() {
 	dbPath := flag.String("db", "db.sqlite3", "path to the local database")
 	slug := flag.String("dir", ".", "directory of post")
+	force := flag.Bool("force", false, "allow replacing a post with a different title")
 	flag.Parse()
-	if err := run(*dbPath, *slug); err != nil {
-		fmt.Fprintf(os.Stderr, "%s", err)
+	if err := run(*dbPath, *slug, *force); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 }
 
-func run(dbPath, dir string) error {
+func run(dbPath, dir string, force bool) error {
 	ctx := context.Background()
 	store, err := state.Open(ctx, dbPath, 1)
 	if err != nil {
@@ -46,7 +51,17 @@ func run(dbPath, dir string) error {
 		return fmt.Errorf("open post: %w", err)
 	}
 
-	_, err = store.AddPost(ctx, post)
+	if !force {
+		existing, err := store.GetPost(ctx, post.Slug)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("check existing post: %w", err)
+		}
+		if err == nil && existing.Title != post.Title {
+			return fmt.Errorf("%w: slug %q has title %q, incoming title %q; use --force to overwrite", errPostTitleMismatch, post.Slug, existing.Title, post.Title)
+		}
+	}
+
+	_, err = store.UpsertPost(ctx, post)
 	if err != nil {
 		return fmt.Errorf("store post: %w", err)
 	}
@@ -63,7 +78,7 @@ const (
 func loadPost(fsys fs.FS) (state.PostInit, error) {
 	meta, err := loadPostMetadata(fsys)
 	if err != nil {
-		return state.PostInit{}, fmt.Errorf("load post matadata: %w", err)
+		return state.PostInit{}, fmt.Errorf("load post metadata: %w", err)
 	}
 
 	assets, err := loadPostAssets(fsys)
@@ -80,7 +95,7 @@ func loadPost(fsys fs.FS) (state.PostInit, error) {
 		PostMetadataInit: meta,
 		Assets:           assets,
 		Body:             string(body),
-		BodyType:         "html-template",
+		BodyType:         state.PostBodyHtmlTemplate,
 	}, nil
 }
 
