@@ -36,7 +36,8 @@ func (h handler) notifyReload(w http.ResponseWriter, r *http.Request) {
 		watchers = append(watchers, watcher)
 	}
 
-	if _, err := io.WriteString(w, ": connected\n\n"); err != nil {
+	// Reconnect promptly after a development server restart.
+	if _, err := io.WriteString(w, "retry: 200\n: connected\n\n"); err != nil {
 		h.logger.ErrorContext(r.Context(), "SSE", "method", r.Method, "path", r.URL.Path, "error", err)
 		return
 	}

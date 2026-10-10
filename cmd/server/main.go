@@ -60,6 +60,9 @@ func run(logger *slog.Logger, cfg config.Config) error {
 		ReadHeaderTimeout: 5 * time.Second,
 		IdleTimeout:       time.Minute,
 		MaxHeaderBytes:    http.DefaultMaxHeaderBytes,
+		BaseContext: func(net.Listener) context.Context {
+			return ctx
+		},
 	}
 
 	if !cfg.Debug {
