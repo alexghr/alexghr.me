@@ -12,7 +12,7 @@ import (
 	"github.com/alexghr/alexghr.me/internal/state"
 )
 
-const pageSize = 3
+const pageSize = 8
 
 // Absolute limit. Update as more posts get published
 const maxPage = 10
