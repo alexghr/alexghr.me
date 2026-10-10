@@ -254,7 +254,9 @@ func (s *Store) addPostAssets(ctx context.Context, tx *sql.Tx, postID int64, pos
 
 func (s *Store) ListPosts(ctx context.Context) ([]PostMetadata, error) {
 	rows, err := s.db.QueryContext(ctx, `SELECT id, slug, title, description, body_type,
-		created_at, published_at, updated_at FROM posts ORDER BY created_at DESC, id DESC`)
+		created_at, published_at, updated_at FROM posts
+		WHERE published_at is not NULL
+		ORDER BY published_at DESC, id DESC`)
 	if err != nil {
 		return nil, fmt.Errorf("list posts: %w", err)
 	}
