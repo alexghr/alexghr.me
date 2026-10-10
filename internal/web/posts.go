@@ -46,7 +46,7 @@ func (h handler) servePosts(w http.ResponseWriter, r *http.Request) {
 		h.renderNotFound(w, r)
 		return
 	}
-	pageModel := postsModel{model: model{InstanceID: h.id, Debug: h.debug}, Posts: posts, Page: page}
+	pageModel := postsModel{model: model{InstanceID: h.id, Debug: h.debug, CurrentPage: "blog"}, Posts: posts, Page: page}
 	if page > 1 {
 		pageModel.Previous = page - 1
 	}
@@ -86,7 +86,7 @@ func (h handler) servePost(w http.ResponseWriter, r *http.Request) {
 		model
 		Post state.Post
 		Body template.HTML
-	}{model{InstanceID: h.id, Debug: h.debug}, post, body})
+	}{model{InstanceID: h.id, Debug: h.debug, CurrentPage: "post"}, post, body})
 }
 
 func renderPostBody(post state.Post) (template.HTML, error) {

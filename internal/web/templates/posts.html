@@ -2,21 +2,7 @@
 {{define "description"}}<meta name="description" content="Posts by Alex Gherghisan." />{{end}}
 {{define "canonical"}}<link rel="canonical" href="https://www.alexghr.me/blog/{{if gt .Page 1}}?page={{.Page}}{{end}}" />{{end}}
 
-{{define "headEnd"}}
-<style>
-#pagination {
-  margin-block-start: 3rem;
-  display: flex;
-  flex-flow: row nowrap;
-  gap: 3rem;
-  justify-content: center;
-  align-items: center;
-}
-</style>
-{{end}}
-
 {{define "main"}}
-<nav><a href="/">Home</a></nav>
 <h1>Blog</h1>
 {{range .Posts}}
 <article>
@@ -28,13 +14,15 @@
 <p>No posts yet.</p>
 {{end}}
 
-<div id="pagination">
+{{if or .Previous .Next}}
+<nav id="pagination" aria-label="Blog pagination">
 {{if .Previous}}
-<a href="?page={{.Previous}}">Previous</a>
+<a href="?page={{.Previous}}">Newer posts</a>
 {{end}}
 {{if .Next}}
-<a href="?page={{.Next}}">Next</a>
+<a href="?page={{.Next}}">Older posts</a>
 {{end}}
-</div>
+</nav>
+{{end}}
 
 {{end}}

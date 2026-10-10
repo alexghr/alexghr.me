@@ -29,8 +29,9 @@ type handler struct {
 }
 
 type model struct {
-	InstanceID string
-	Debug      bool
+	InstanceID  string
+	Debug       bool
+	CurrentPage string
 }
 
 func NewHTTPHandler(store *state.Store, logger *slog.Logger, debug bool, rateLimitBurst uint64, rateLimitRefill float64, adminPassword string) (http.Handler, error) {
@@ -95,7 +96,7 @@ func (h handler) serveIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m := model{InstanceID: h.id, Debug: h.debug}
+	m := model{InstanceID: h.id, Debug: h.debug, CurrentPage: "home"}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := t.ExecuteTemplate(w, "base", m); err != nil {

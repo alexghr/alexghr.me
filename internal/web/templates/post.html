@@ -2,7 +2,6 @@
 {{define "description"}}<meta name="description" content="{{.Post.Description}}" />{{end}}
 {{define "canonical"}}<link rel="canonical" href="https://www.alexghr.me/blog/{{.Post.Slug}}/" />{{end}}
 {{define "main"}}
-<nav><a href="/blog/">Back to blog</a></nav>
 <article>
   <header>
     <h1>{{.Post.Title}}</h1>
@@ -11,4 +10,5 @@
   </header>
   {{.Body}}
 </article>
+<p class="back-to-blog"><a href="/blog/">Back to blog</a></p>
 {{end}}

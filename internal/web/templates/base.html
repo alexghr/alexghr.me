@@ -17,6 +17,11 @@
     {{block "headEnd" .}}{{end}}
   </head>
   <body>
+    <nav aria-label="Main">
+      <a href="/"{{if eq .CurrentPage "home"}} aria-current="page"{{end}}>Home</a>
+      <a href="/blog/"{{if eq .CurrentPage "blog"}} aria-current="page"{{else if eq .CurrentPage "post"}} aria-current="location"{{end}}>Blog</a>
+    </nav>
+
     <main>{{block "main" .}}{{end}}</main>
     <footer>
       <a rel="noopener" href="https://github.com/alexghr">GitHub</a>

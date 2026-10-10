@@ -19,6 +19,31 @@ body {
   flex-direction: column;
 }
 
+body > nav {
+  width: 100%;
+  max-width: var(--main-max-width);
+  padding: var(--main-padding) var(--main-padding) 0;
+  display: flex;
+  gap: 1rem;
+}
+
+nav a[aria-current] {
+  font-weight: 700;
+}
+
+#pagination {
+  margin-block-start: 3rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 3rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.back-to-blog {
+  margin-block-start: 3rem;
+}
+
 main {
   flex: 1;
   max-width: var(--main-max-width);
@@ -42,15 +67,17 @@ footer {
 
 a {
   color: var(--text-color);
+  cursor: pointer;
 }
 
 h1 {
-  margin-block: 4rem 2rem;
+  margin-block: 2rem 1.5rem;
+  font-size: 1.5rem;
 }
 
 h2 {
-  margin-block: 4rem 1rem;
-  font-size: 1.35rem;
+  margin-block: 2rem 1rem;
+  font-size: 1.2rem;
 }
 
 p {
