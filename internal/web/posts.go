@@ -27,7 +27,7 @@ func (h handler) servePosts(w http.ResponseWriter, r *http.Request) {
 func (h handler) servePost(w http.ResponseWriter, r *http.Request) {
 	post, err := h.store.GetPost(r.Context(), r.PathValue("slug"))
 	if errors.Is(err, sql.ErrNoRows) {
-		h.renderNotFound(w, r)
+		h.redirect(w, r)
 		return
 	}
 	if err != nil {

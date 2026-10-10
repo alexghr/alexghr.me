@@ -38,7 +38,7 @@ func (h handler) servePostAsset(w http.ResponseWriter, r *http.Request) {
 	localPath := "assets/" + r.PathValue("path")
 	asset, postStatus, err := h.store.GetPostAsset(r.Context(), r.PathValue("slug"), localPath)
 	if errors.Is(err, sql.ErrNoRows) {
-		http.NotFound(w, r)
+		h.redirect(w, r)
 		return
 	}
 	if err != nil {

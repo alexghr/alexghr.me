@@ -1,7 +1,9 @@
 package web
 
 import (
+	"database/sql"
 	"embed"
+	"errors"
 	"fmt"
 	"html/template"
 	"io"
@@ -9,6 +11,7 @@ import (
 	"log/slog"
 	"math/rand/v2"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"sync"
@@ -73,6 +76,8 @@ func NewHTTPHandler(store *state.Store, logger *slog.Logger, debug bool, rateLim
 	admin := basicAuth(adminHandler(h), adminPasswordBytes)
 	mux.Handle("/admin/", http.StripPrefix("/admin", admin))
 
+	mux.HandleFunc("/{redirect...}", h.redirect)
+
 	var result http.Handler = accessLog(logger, rateLimit.wrap(compress(mux)))
 	if !debug {
 		// Development uses inline JavaScript and a reload script.
@@ -104,6 +109,59 @@ func (h handler) serveRobots(w http.ResponseWriter, r *http.Request) {
 Disallow: /api/
 Disallow: /admin
 `)
+}
+
+func (h handler) redirect(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet && r.Method != http.MethodHead {
+		w.Header().Set("Allow", "GET, HEAD")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	redir, err := h.store.GetRedirect(r.Context(), r.URL.Path)
+	if errors.Is(err, sql.ErrNoRows) {
+		h.renderNotFound(w, r)
+		return
+	}
+
+	if err != nil {
+		h.renderError(w, r)
+		return
+	}
+
+	if !redir.Active {
+		h.renderNotFound(w, r)
+		return
+	}
+
+	to, err := url.Parse(redir.ToURL)
+	if err != nil {
+		h.renderNotFound(w, r)
+		return
+	}
+
+	if to.Path == r.URL.Path {
+		h.renderNotFound(w, r)
+		return
+	}
+
+	if to.RawQuery == "" {
+		to.RawQuery = r.URL.RawQuery
+	} else if r.URL.RawQuery != "" {
+		query := r.URL.Query()
+		// Configured destination parameters take precedence over incoming ones.
+		for key, values := range to.Query() {
+			query[key] = values
+		}
+		to.RawQuery = query.Encode()
+	}
+
+	code := http.StatusTemporaryRedirect
+	if redir.Permanent {
+		code = http.StatusPermanentRedirect
+	}
+
+	http.Redirect(w, r, to.String(), code)
 }
 
 func (h handler) renderError(w http.ResponseWriter, r *http.Request) {
