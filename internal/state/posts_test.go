@@ -69,7 +69,7 @@ func TestUpsertPostReplacesAndSnapshots(t *testing.T) {
 	if len(edited.Tags) != 1 || len(edited.Assets) != 1 || edited.Assets[0].Path != "assets/new.svg" {
 		t.Fatalf("associations not replaced: %+v", edited)
 	}
-	if _, err := s.GetPostAsset(ctx, input.Slug, "assets/old.svg"); !errors.Is(err, sql.ErrNoRows) {
+	if _, _, err := s.GetPostAsset(ctx, input.Slug, "assets/old.svg"); !errors.Is(err, sql.ErrNoRows) {
 		t.Fatalf("removed asset still associated: %v", err)
 	}
 	var snapshot Post

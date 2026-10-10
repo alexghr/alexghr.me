@@ -36,7 +36,7 @@ func (h handler) serveAsset(w http.ResponseWriter, r *http.Request) {
 
 func (h handler) servePostAsset(w http.ResponseWriter, r *http.Request) {
 	localPath := "assets/" + r.PathValue("path")
-	asset, err := h.store.GetPostAsset(r.Context(), r.PathValue("slug"), localPath)
+	asset, postStatus, err := h.store.GetPostAsset(r.Context(), r.PathValue("slug"), localPath)
 	if errors.Is(err, sql.ErrNoRows) {
 		http.NotFound(w, r)
 		return
@@ -44,6 +44,11 @@ func (h handler) servePostAsset(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.logger.ErrorContext(r.Context(), "read post asset", "error", err)
 		http.Error(w, "could not read asset", http.StatusInternalServerError)
+		return
+	}
+
+	if !postStatus.Public() {
+		http.NotFound(w, r)
 		return
 	}
 

@@ -91,16 +91,17 @@ func (s *Store) GetAsset(ctx context.Context, id []byte) (Asset, error) {
 }
 
 // GetPostAsset reads an asset by its path relative to the post, such as assets/image.png.
-func (s *Store) GetPostAsset(ctx context.Context, slug, localPath string) (Asset, error) {
+func (s *Store) GetPostAsset(ctx context.Context, slug, localPath string) (Asset, PostStatus, error) {
 	var asset Asset
-	err := s.db.QueryRowContext(ctx, `SELECT a.id, a.name, a.content_type, a.data
+	var status PostStatus
+	err := s.db.QueryRowContext(ctx, `SELECT a.id, a.name, a.content_type, a.data, p.status
 		FROM posts p
 		JOIN post_assets pa ON pa.post_id = p.id
 		JOIN assets a ON a.id = pa.asset_id
-		WHERE p.slug = ? AND p.status = "published" AND pa.local_path = ?`, slug, localPath,
-	).Scan(&asset.ID, &asset.Name, &asset.ContentType, &asset.Data)
+		WHERE p.slug = ? AND pa.local_path = ?`, slug, localPath,
+	).Scan(&asset.ID, &asset.Name, &asset.ContentType, &asset.Data, &status)
 	if err != nil {
-		return Asset{}, fmt.Errorf("read post asset: %w", err)
+		return Asset{}, "", fmt.Errorf("read post asset: %w", err)
 	}
-	return asset, nil
+	return asset, status, nil
 }

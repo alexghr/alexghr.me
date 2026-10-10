@@ -22,11 +22,12 @@ type PostStatus string
 const (
 	PostStatusDraft     PostStatus = "draft"
 	PostStatusPublished PostStatus = "published"
+	PostStatusArchived  PostStatus = "archived"
 )
 
 func (s PostStatus) Valid() bool {
 	switch s {
-	case PostStatusDraft, PostStatusPublished:
+	case PostStatusDraft, PostStatusPublished, PostStatusArchived:
 		return true
 	default:
 		return false
@@ -34,7 +35,7 @@ func (s PostStatus) Valid() bool {
 }
 
 func (s PostStatus) Public() bool {
-	return s == PostStatusPublished
+	return s == PostStatusPublished || s == PostStatusArchived
 }
 
 type PostMetadataInit struct {
