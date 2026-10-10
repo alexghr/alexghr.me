@@ -12,7 +12,7 @@ import (
 )
 
 func (h handler) servePosts(w http.ResponseWriter, r *http.Request) {
-	posts, err := h.store.ListPosts(r.Context())
+	posts, err := h.store.ListPosts(r.Context(), state.PostStatusPublished)
 	if err != nil {
 		h.logger.ErrorContext(r.Context(), "list posts", "error", err)
 		h.renderError(w, r)
@@ -27,12 +27,18 @@ func (h handler) servePosts(w http.ResponseWriter, r *http.Request) {
 func (h handler) servePost(w http.ResponseWriter, r *http.Request) {
 	post, err := h.store.GetPost(r.Context(), r.PathValue("slug"))
 	if errors.Is(err, sql.ErrNoRows) {
-		http.NotFound(w, r)
+		h.renderNotFound(w, r)
 		return
 	}
 	if err != nil {
 		h.logger.ErrorContext(r.Context(), "get post", "error", err)
 		h.renderError(w, r)
+		return
+	}
+
+	if !post.Status.Public() {
+		h.logger.WarnContext(r.Context(), "render draft post", "slug", post.Slug, "error", err)
+		h.renderNotFound(w, r)
 		return
 	}
 

@@ -17,6 +17,26 @@ const (
 	PostBodyHtmlTemplate PostBodyType = "html-template"
 )
 
+type PostStatus string
+
+const (
+	PostStatusDraft     PostStatus = "draft"
+	PostStatusPublished PostStatus = "published"
+)
+
+func (s PostStatus) Valid() bool {
+	switch s {
+	case PostStatusDraft, PostStatusPublished:
+		return true
+	default:
+		return false
+	}
+}
+
+func (s PostStatus) Public() bool {
+	return s == PostStatusPublished
+}
+
 type PostMetadataInit struct {
 	Slug        string     `json:"slug"`
 	Title       string     `json:"title"`
@@ -24,6 +44,7 @@ type PostMetadataInit struct {
 	PublishedAt *time.Time `json:"publishedAt"`
 	UpdatedAt   *time.Time `json:"updatedAt"`
 	Tags        []string   `json:"tags"`
+	Status      PostStatus `json:"status"`
 }
 
 type PostAssetInit struct {
@@ -52,6 +73,7 @@ type PostMetadata struct {
 	Title       string
 	Description string
 	BodyType    PostBodyType
+	Status      PostStatus
 	CreatedAt   time.Time
 	PublishedAt time.Time
 	UpdatedAt   time.Time
@@ -81,6 +103,9 @@ func (s *Store) savePost(ctx context.Context, post PostInit, upsert bool) (Post,
 	}
 	if post.BodyType != PostBodyHtml && post.BodyType != PostBodyHtmlTemplate {
 		return Post{}, fmt.Errorf("unsupported post body type %q", post.BodyType)
+	}
+	if !post.Status.Valid() {
+		return Post{}, fmt.Errorf("invalid post status %s", post.Status)
 	}
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -119,9 +144,9 @@ func (s *Store) savePost(ctx context.Context, post PostInit, upsert bool) (Post,
 			updatedAt = sql.NullString{String: time.Now().UTC().Format(time.RFC3339Nano), Valid: true}
 		}
 
-		_, err = tx.ExecContext(ctx, `UPDATE posts SET title = ?, description = ?, body = ?, body_type = ?,
+		_, err = tx.ExecContext(ctx, `UPDATE posts SET title = ?, description = ?, body = ?, body_type = ?, status = ?,
 			published_at = COALESCE(?, published_at), updated_at = ? WHERE id = ?`,
-			post.Title, post.Description, post.Body, post.BodyType, publishedAt, updatedAt, existing.ID)
+			post.Title, post.Description, post.Body, post.BodyType, post.Status, publishedAt, updatedAt, existing.ID)
 		if err != nil {
 			return Post{}, fmt.Errorf("update post: %w", err)
 		}
@@ -136,9 +161,9 @@ func (s *Store) savePost(ctx context.Context, post PostInit, upsert bool) (Post,
 		id = existing.ID
 	} else {
 		res, err := tx.ExecContext(ctx,
-			`INSERT INTO posts(slug, title, description, body, body_type, published_at, updated_at)
-		VALUES(?, ?, ?, ?, ?, ?, ?)`,
-			post.Slug, post.Title, post.Description, post.Body, post.BodyType,
+			`INSERT INTO posts(slug, title, description, body, body_type, status, published_at, updated_at)
+		VALUES(?, ?, ?, ?, ?, ?, ?, ?)`,
+			post.Slug, post.Title, post.Description, post.Body, post.BodyType, post.Status,
 			publishedAt, updatedAt,
 		)
 
@@ -252,11 +277,11 @@ func (s *Store) addPostAssets(ctx context.Context, tx *sql.Tx, postID int64, pos
 	return assets, nil
 }
 
-func (s *Store) ListPosts(ctx context.Context) ([]PostMetadata, error) {
-	rows, err := s.db.QueryContext(ctx, `SELECT id, slug, title, description, body_type,
+func (s *Store) ListPosts(ctx context.Context, status PostStatus) ([]PostMetadata, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT id, slug, title, description, body_type, status,
 		created_at, published_at, updated_at FROM posts
-		WHERE published_at is not NULL
-		ORDER BY published_at DESC, id DESC`)
+		WHERE status = ?
+		ORDER BY published_at DESC, id DESC`, status)
 	if err != nil {
 		return nil, fmt.Errorf("list posts: %w", err)
 	}
@@ -296,7 +321,7 @@ func (s *Store) getPost(ctx context.Context, tx *sql.Tx, slug string) (Post, err
 	var post Post
 
 	metadata, err := scanPostMetadata(tx.QueryRowContext(ctx,
-		`SELECT id, slug, title, description, body_type, created_at, published_at, updated_at, body
+		`SELECT id, slug, title, description, body_type, status, created_at, published_at, updated_at, body
 		FROM posts WHERE slug = ?`, slug), &post.Body)
 	if err != nil {
 		return Post{}, err
@@ -359,7 +384,7 @@ func scanPostMetadata(row scanner, extra ...any) (PostMetadata, error) {
 	var published, updated sql.NullString
 
 	fields := []any{&post.ID, &post.Slug, &post.Title, &post.Description,
-		&post.BodyType, &created, &published, &updated}
+		&post.BodyType, &post.Status, &created, &published, &updated}
 
 	if err := row.Scan(append(fields, extra...)...); err != nil {
 		return PostMetadata{}, fmt.Errorf("scan post metadata: %w", err)

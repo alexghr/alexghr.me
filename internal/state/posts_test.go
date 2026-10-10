@@ -24,7 +24,7 @@ func postTestStore(t *testing.T) *Store {
 func samplePost() PostInit {
 	published := time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
 	return PostInit{
-		PostMetadataInit: PostMetadataInit{Slug: "sample", Title: "Sample", Description: "Original description", PublishedAt: &published, Tags: []string{"go", "blog"}},
+		PostMetadataInit: PostMetadataInit{Slug: "sample", Title: "Sample", Description: "Original description", PublishedAt: &published, Tags: []string{"go", "blog"}, Status: PostStatusPublished},
 		Body:             "original body", BodyType: PostBodyHtmlTemplate,
 		Assets: []PostAssetInit{{Path: "assets/old.svg", ContentType: "image/svg+xml", Data: []byte("old image")}},
 	}
@@ -73,13 +73,35 @@ func TestUpsertPostReplacesAndSnapshots(t *testing.T) {
 		t.Fatalf("removed asset still associated: %v", err)
 	}
 	var snapshot Post
-	metadata, err := scanPostMetadata(s.db.QueryRow(`SELECT post_id, slug, title, description, body_type,
-		created_at, published_at, updated_at, body FROM post_revisions WHERE post_id = ?`, original.ID), &snapshot.Body)
+	var created string
+	var published, updated sql.NullString
+	// Revisions preserve content and dates, but not publication status.
+	err = s.db.QueryRow(`SELECT post_id, slug, title, description, body_type,
+		created_at, published_at, updated_at, body FROM post_revisions WHERE post_id = ?`, original.ID).Scan(
+		&snapshot.ID, &snapshot.Slug, &snapshot.Title, &snapshot.Description, &snapshot.BodyType,
+		&created, &published, &updated, &snapshot.Body)
 	if err != nil {
 		t.Fatal(err)
 	}
-	snapshot.PostMetadata = metadata
-	if snapshot.PostMetadata != original.PostMetadata || snapshot.Body != original.Body {
+	snapshot.CreatedAt, err = time.Parse(time.RFC3339Nano, created)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if published.Valid {
+		snapshot.PublishedAt, err = time.Parse(time.RFC3339Nano, published.String)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	if updated.Valid {
+		snapshot.UpdatedAt, err = time.Parse(time.RFC3339Nano, updated.String)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	expectedMetadata := original.PostMetadata
+	expectedMetadata.Status = ""
+	if snapshot.PostMetadata != expectedMetadata || snapshot.Body != original.Body {
 		t.Fatalf("snapshot metadata/body differs: %+v", snapshot)
 	}
 	var count int

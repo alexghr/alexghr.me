@@ -118,6 +118,14 @@ func loadPostMetadata(fsys fs.FS) (state.PostMetadataInit, error) {
 		return state.PostMetadataInit{}, fmt.Errorf("empty title")
 	}
 
+	if meta.Status == "" {
+		meta.Status = state.PostStatusDraft
+	}
+
+	if !meta.Status.Valid() {
+		return state.PostMetadataInit{}, fmt.Errorf("invalid status: %s", meta.Status)
+	}
+
 	return meta, nil
 }
 

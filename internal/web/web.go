@@ -110,8 +110,12 @@ func (h handler) renderError(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(500)
 	_, err := w.Write([]byte("<body>there was an error</body>"))
 	if err != nil {
-		h.logger.ErrorContext(r.Context(), "serve index", "method", r.Method, "path", r.URL.Path, "error", err)
+		h.logger.ErrorContext(r.Context(), "render 500", "method", r.Method, "path", r.URL.Path, "error", err)
 	}
+}
+
+func (h handler) renderNotFound(w http.ResponseWriter, r *http.Request) {
+	http.NotFound(w, r)
 }
 
 //go:embed static
