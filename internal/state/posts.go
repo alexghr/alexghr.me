@@ -278,11 +278,15 @@ func (s *Store) addPostAssets(ctx context.Context, tx *sql.Tx, postID int64, pos
 	return assets, nil
 }
 
-func (s *Store) ListPosts(ctx context.Context, status PostStatus) ([]PostMetadata, error) {
+func (s *Store) ListPosts(ctx context.Context, status PostStatus, limit, offset int) ([]PostMetadata, error) {
+	if limit <= 0 || offset < 0 {
+		return nil, fmt.Errorf("invalid pagination: limit %d, offset %d", limit, offset)
+	}
 	rows, err := s.db.QueryContext(ctx, `SELECT id, slug, title, description, body_type, status,
 		created_at, published_at, updated_at FROM posts
 		WHERE status = ?
-		ORDER BY published_at DESC, id DESC`, status)
+		ORDER BY published_at DESC, id DESC
+		LIMIT ? OFFSET ?`, status, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("list posts: %w", err)
 	}

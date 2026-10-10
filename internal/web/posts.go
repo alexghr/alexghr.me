@@ -7,21 +7,55 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"strconv"
 
 	"github.com/alexghr/alexghr.me/internal/state"
 )
 
+const pageSize = 3
+
+// Absolute limit. Update as more posts get published
+const maxPage = 10
+
+type postsModel struct {
+	model
+	Posts                []state.PostMetadata
+	Page, Next, Previous int
+}
+
 func (h handler) servePosts(w http.ResponseWriter, r *http.Request) {
-	posts, err := h.store.ListPosts(r.Context(), state.PostStatusPublished)
+	page := 1
+	if value := r.URL.Query().Get("page"); value != "" {
+		var err error
+		page, err = strconv.Atoi(value)
+		if err != nil || page < 1 || page > maxPage {
+			http.Error(w, "invalid page number", http.StatusBadRequest)
+			return
+		}
+	}
+
+	// Fetch one extra post to determine whether another page exists.
+	posts, err := h.store.ListPosts(r.Context(), state.PostStatusPublished, pageSize+1, (page-1)*pageSize)
 	if err != nil {
 		h.logger.ErrorContext(r.Context(), "list posts", "error", err)
 		h.renderError(w, r)
 		return
 	}
-	h.renderPostPage(w, r, "posts", struct {
-		model
-		Posts []state.PostMetadata
-	}{model{InstanceID: h.id, Debug: h.debug}, posts})
+
+	if page > 1 && len(posts) == 0 {
+		h.renderNotFound(w, r)
+		return
+	}
+	pageModel := postsModel{model: model{InstanceID: h.id, Debug: h.debug}, Posts: posts, Page: page}
+	if page > 1 {
+		pageModel.Previous = page - 1
+	}
+	if len(posts) > pageSize {
+		pageModel.Posts = posts[:pageSize]
+		pageModel.Next = page + 1
+	}
+
+	h.renderPostPage(w, r, "posts", pageModel)
 }
 
 func (h handler) servePost(w http.ResponseWriter, r *http.Request) {

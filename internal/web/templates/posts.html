@@ -1,16 +1,40 @@
 {{define "title"}}<title>Blog — Alex Gherghisan</title>{{end}}
 {{define "description"}}<meta name="description" content="Posts by Alex Gherghisan." />{{end}}
-{{define "canonical"}}<link rel="canonical" href="https://www.alexghr.me/blog/" />{{end}}
+{{define "canonical"}}<link rel="canonical" href="https://www.alexghr.me/blog/{{if gt .Page 1}}?page={{.Page}}{{end}}" />{{end}}
+
+{{define "headEnd"}}
+<style>
+#pagination {
+  margin-block-start: 3rem;
+  display: flex;
+  flex-flow: row nowrap;
+  gap: 3rem;
+  justify-content: center;
+  align-items: center;
+}
+</style>
+{{end}}
+
 {{define "main"}}
 <nav><a href="/">Home</a></nav>
 <h1>Blog</h1>
 {{range .Posts}}
-<section>
+<article>
   <h2><a href="/blog/{{.Slug}}/">{{.Title}}</a></h2>
   {{if not .PublishedAt.IsZero}}<time datetime="{{.PublishedAt.Format "2006-01-02"}}">{{.PublishedAt.Format "2 January 2006"}}</time>{{end}}
   {{if .Description}}<p>{{.Description}}</p>{{end}}
-</section>
+</article>
 {{else}}
 <p>No posts yet.</p>
 {{end}}
+
+<div id="pagination">
+{{if .Previous}}
+<a href="?page={{.Previous}}">Previous</a>
+{{end}}
+{{if .Next}}
+<a href="?page={{.Next}}">Next</a>
+{{end}}
+</div>
+
 {{end}}
