@@ -154,7 +154,7 @@ func loadPostAssets(fsys fs.FS) ([]state.PostAssetInit, error) {
 
 			assets = append(assets, state.PostAssetInit{
 				Path:        path.Join(ASSETS_DIR, entry.Name()), // use path for web paths
-				ContentType: contentType,
+				ContentType: state.AssetContentType(contentType),
 				Data:        data,
 			})
 		}

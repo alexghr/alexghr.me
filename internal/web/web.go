@@ -1,6 +1,7 @@
 package web
 
 import (
+	"archive/zip"
 	"database/sql"
 	"embed"
 	"errors"
@@ -26,6 +27,7 @@ type handler struct {
 	id        string
 	store     *state.Store
 	debug     bool
+	archives  *archiveCache
 }
 
 type model struct {
@@ -50,7 +52,18 @@ func NewHTTPHandler(store *state.Store, logger *slog.Logger, debug bool, rateLim
 	}
 
 	id := strconv.FormatUint(rand.Uint64(), 16)
-	h := handler{store: store, templates: templates, logger: logger, id: id, debug: debug}
+
+	archives := new(archiveCache)
+	archives.cache = make(map[string]*zip.Reader)
+	h := handler{
+		id:        id,
+		store:     store,
+		templates: templates,
+		archives:  archives,
+		debug:     debug,
+		logger:    logger,
+	}
+
 	if !debug {
 		static = cache(static, 600*time.Second)
 	}
@@ -69,7 +82,7 @@ func NewHTTPHandler(store *state.Store, logger *slog.Logger, debug bool, rateLim
 	mux.HandleFunc("GET /blog/{slug}/{$}", h.servePost)
 	mux.HandleFunc("GET /blog/{slug}/assets/{path...}", h.servePostAsset)
 	mux.HandleFunc("GET /robots.txt", h.serveRobots)
-	mux.HandleFunc("GET /asset/{hash}/{filename}", h.serveAsset)
+	mux.HandleFunc("GET /asset/{hash}/{path...}", h.serveAsset)
 	if debug {
 		mux.HandleFunc("GET /api/reload", h.notifyReload)
 	}

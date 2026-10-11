@@ -5,6 +5,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/alexghr/alexghr.me/internal/state"
 )
 
 const maxAssetSize = 10 << 20 // 10 MiB
@@ -46,9 +48,14 @@ func (h handler) serveAdmin(w http.ResponseWriter, r *http.Request) {
 		Assets []adminAsset
 	}{model: model{InstanceID: h.id, Debug: h.debug}}
 	for _, asset := range assets {
+		publicURL := fmt.Sprintf("/asset/%x/%s", asset.ID, url.PathEscape(asset.Name))
+		if asset.ContentType.IsArchive() {
+			publicURL = fmt.Sprintf("/asset/%x", asset.ID)
+		}
+
 		m.Assets = append(m.Assets, adminAsset{
 			Name: asset.Name,
-			URL:  fmt.Sprintf("/asset/%x/%s", asset.ID, url.PathEscape(asset.Name)),
+			URL:  publicURL,
 		})
 	}
 
@@ -88,7 +95,7 @@ func (h handler) serveUpload(w http.ResponseWriter, r *http.Request) {
 		if contentType == "" {
 			contentType = http.DetectContentType(data)
 		}
-		_, err = h.store.AddAsset(r.Context(), part.FileName(), contentType, data)
+		_, err = h.store.AddAsset(r.Context(), part.FileName(), state.AssetContentType(contentType), data)
 		if err != nil {
 			h.logger.ErrorContext(r.Context(), "save uploaded asset", "error", err)
 			http.Error(w, "could not save file", http.StatusInternalServerError)

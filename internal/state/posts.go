@@ -50,7 +50,7 @@ type PostMetadataInit struct {
 
 type PostAssetInit struct {
 	Path        string
-	ContentType string
+	ContentType AssetContentType
 	Data        []byte
 }
 

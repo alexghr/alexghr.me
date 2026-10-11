@@ -7,12 +7,22 @@ import (
 	"fmt"
 )
 
+type AssetContentType string
+
+func (a AssetContentType) IsArchive() bool {
+	return a == "application/zip"
+}
+
+func (a AssetContentType) String() string {
+	return string(a)
+}
+
 type AssetID []byte
 
 type Asset struct {
 	ID          AssetID
 	Name        string
-	ContentType string
+	ContentType AssetContentType
 	Data        []byte
 }
 
@@ -37,7 +47,7 @@ func (s *Store) ListAssets(ctx context.Context) ([]Asset, error) {
 	return assets, nil
 }
 
-func (s *Store) AddAsset(ctx context.Context, name, contentType string, data []byte) (Asset, error) {
+func (s *Store) AddAsset(ctx context.Context, name string, contentType AssetContentType, data []byte) (Asset, error) {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return Asset{}, fmt.Errorf("begin tx: %w", err)
@@ -57,7 +67,7 @@ func (s *Store) AddAsset(ctx context.Context, name, contentType string, data []b
 	return asset, nil
 }
 
-func (s *Store) addAsset(ctx context.Context, tx *sql.Tx, name, contentType string, data []byte) (Asset, error) {
+func (s *Store) addAsset(ctx context.Context, tx *sql.Tx, name string, contentType AssetContentType, data []byte) (Asset, error) {
 	hash := sha256.Sum256(data)
 
 	_, err := tx.ExecContext(ctx,
