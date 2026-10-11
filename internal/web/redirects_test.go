@@ -68,7 +68,11 @@ func TestRedirects(t *testing.T) {
 		}
 	}
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	h, err := NewHTTPHandler(store, logger, false, 100, 1, "")
+	h, err := NewHTTPHandler(store, logger, HandlerOptions{
+		RateLimitBurst:  100,
+		RateLimitRefill: 1,
+		PublicURL:       "https://www.alexghr.me/",
+	})
 	if err != nil {
 		t.Fatal(err)
 	}

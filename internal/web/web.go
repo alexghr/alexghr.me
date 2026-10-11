@@ -27,6 +27,7 @@ type handler struct {
 	id        string
 	store     *state.Store
 	debug     bool
+	publicURL *url.URL
 	archives  *archiveCache
 }
 
@@ -36,19 +37,32 @@ type model struct {
 	CurrentPage string
 }
 
-func NewHTTPHandler(store *state.Store, logger *slog.Logger, debug bool, rateLimitBurst uint64, rateLimitRefill float64, adminPassword string) (http.Handler, error) {
-	static, err := newStaticFileServer(debug)
+type HandlerOptions struct {
+	Debug           bool
+	RateLimitBurst  uint64
+	RateLimitRefill float64
+	AdminPassword   string
+	PublicURL       string
+}
+
+func NewHTTPHandler(store *state.Store, logger *slog.Logger, options HandlerOptions) (http.Handler, error) {
+	static, err := newStaticFileServer(options.Debug)
 	if err != nil {
 		return nil, fmt.Errorf("static file server: %w", err)
 	}
 
-	templates, err := newTemplates(debug)
+	templates, err := newTemplates(options.Debug)
 	if err != nil {
 		return nil, fmt.Errorf("templates: %w", err)
 	}
 
 	if logger == nil {
 		logger = slog.Default()
+	}
+
+	publicURL, err := url.Parse(options.PublicURL)
+	if err != nil {
+		return nil, fmt.Errorf("public URL %s: %w", options.PublicURL, err)
 	}
 
 	id := strconv.FormatUint(rand.Uint64(), 16)
@@ -60,17 +74,19 @@ func NewHTTPHandler(store *state.Store, logger *slog.Logger, debug bool, rateLim
 		store:     store,
 		templates: templates,
 		archives:  archives,
-		debug:     debug,
+		debug:     options.Debug,
+		publicURL: publicURL,
 		logger:    logger,
 	}
 
-	if !debug {
+	if !options.Debug {
 		static = cache(static, 600*time.Second)
 	}
 
-	rateLimit := newLeakyBucket(logger, float64(rateLimitBurst), rateLimitRefill)
+	rateLimit := newLeakyBucket(logger,
+		float64(options.RateLimitBurst), options.RateLimitRefill)
 
-	adminPasswordBytes, err := decodePassword(adminPassword)
+	adminPasswordBytes, err := decodePassword(options.AdminPassword)
 	if err != nil {
 		return nil, fmt.Errorf("decode admin password: %w", err)
 	}
@@ -83,7 +99,8 @@ func NewHTTPHandler(store *state.Store, logger *slog.Logger, debug bool, rateLim
 	mux.HandleFunc("GET /blog/{slug}/assets/{path...}", h.servePostAsset)
 	mux.HandleFunc("GET /robots.txt", h.serveRobots)
 	mux.HandleFunc("GET /asset/{hash}/{path...}", h.serveAsset)
-	if debug {
+	mux.HandleFunc("GET /rss.xml", h.serverRSS)
+	if options.Debug {
 		mux.HandleFunc("GET /api/reload", h.notifyReload)
 	}
 
@@ -93,7 +110,7 @@ func NewHTTPHandler(store *state.Store, logger *slog.Logger, debug bool, rateLim
 	mux.HandleFunc("/{redirect...}", h.redirect)
 
 	var result http.Handler = accessLog(logger, rateLimit.wrap(compress(mux)))
-	if !debug {
+	if !options.Debug {
 		// Development uses inline JavaScript and a reload script.
 		result = securityHeaders(result)
 	}
