@@ -19,7 +19,10 @@ buildGoModule rec {
   ];
   buildInputs = [ gcc ];
   nativeCheckInputs = [ go ];
-  subPackages = [ "cmd/server" ];
+  subPackages = [
+    "cmd/server"
+    "cmd/mkpost"
+  ];
   checkPhase = ''
     runHook preCheck
     go vet ./...
