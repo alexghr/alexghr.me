@@ -65,29 +65,36 @@ func (h handler) serveAsset(w http.ResponseWriter, r *http.Request) {
 	http.ServeContent(w, r, asset.Name, time.Time{}, bytes.NewReader(asset.Data))
 }
 
-func (h handler) servePostAsset(w http.ResponseWriter, r *http.Request) {
-	localPath := "assets/" + r.PathValue("path")
-	asset, postStatus, err := h.store.GetPostAsset(r.Context(), r.PathValue("slug"), localPath)
-	if errors.Is(err, sql.ErrNoRows) {
-		h.redirect(w, r)
-		return
-	}
-	if err != nil {
-		h.logger.ErrorContext(r.Context(), "read post asset", "error", err)
-		http.Error(w, "could not read asset", http.StatusInternalServerError)
-		return
-	}
+// func (h handler) servePostAsset(w http.ResponseWriter, r *http.Request) {
+func (h handler) servePostAsset(onlyPublic bool) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		localPath := "assets/" + r.PathValue("path")
+		asset, postStatus, err := h.store.GetPostAsset(r.Context(), r.PathValue("slug"), localPath)
+		if errors.Is(err, sql.ErrNoRows) {
+			h.redirect(w, r)
+			return
+		}
+		if err != nil {
+			h.logger.ErrorContext(r.Context(), "read post asset", "error", err)
+			http.Error(w, "could not read asset", http.StatusInternalServerError)
+			return
+		}
 
-	if !postStatus.Public() {
-		http.NotFound(w, r)
-		return
-	}
+		if onlyPublic && !postStatus.Public() {
+			http.NotFound(w, r)
+			return
+		}
 
-	w.Header().Set("Content-Type", asset.ContentType.String())
-	// cache these for 5m. Not as long as the immutable URLs but still fine
-	w.Header().Set("Cache-Control", "public, max-age=300")
-	w.Header().Set("ETag", `"`+hex.EncodeToString(asset.ID)+`"`)
-	http.ServeContent(w, r, path.Base(localPath), time.Time{}, bytes.NewReader(asset.Data))
+		w.Header().Set("Content-Type", asset.ContentType.String())
+
+		if onlyPublic && postStatus.Public() {
+			// cache these for 5m. Not as long as the immutable URLs but still fine
+			w.Header().Set("Cache-Control", "public, max-age=300")
+			w.Header().Set("ETag", `"`+hex.EncodeToString(asset.ID)+`"`)
+		}
+
+		http.ServeContent(w, r, path.Base(localPath), time.Time{}, bytes.NewReader(asset.Data))
+	})
 }
 
 func (h handler) serveArchiveAsset(w http.ResponseWriter, r *http.Request, archive *zip.Reader) {

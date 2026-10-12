@@ -14,20 +14,19 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const defaultUser = "admin"
-
-func basicAuth(next http.Handler, hashedPassword []byte) http.Handler {
+func basicAuth(next http.Handler, realm, expectedUser string, hashedPassword []byte) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, pw, ok := r.BasicAuth()
+		authHeader := fmt.Sprintf("Basic realm=\"%s\"", realm)
 
 		if !ok {
-			w.Header().Add("WWW-Authenticate", "Basic realm=\"admin\"")
+			w.Header().Add("WWW-Authenticate", authHeader)
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
-		if err := bcrypt.CompareHashAndPassword(hashedPassword, []byte(pw)); err != nil || user != defaultUser {
-			w.Header().Add("WWW-Authenticate", "Basic realm=\"admin\"")
+		if err := bcrypt.CompareHashAndPassword(hashedPassword, []byte(pw)); err != nil || (expectedUser != "" && user != expectedUser) {
+			w.Header().Add("WWW-Authenticate", authHeader)
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}

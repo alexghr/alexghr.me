@@ -13,6 +13,7 @@ type Config struct {
 	RateLimitRefill float64
 	StateDir        string
 	AdminPassword   string
+	DraftPassword   string
 	Debug           bool
 }
 
@@ -47,6 +48,11 @@ func FromEnv() (Config, error) {
 		return Config{}, fmt.Errorf("missing admin password")
 	}
 
+	draftPassword := os.Getenv("DRAFT_PASS")
+	if draftPassword == "" {
+		return Config{}, fmt.Errorf("missing draft password")
+	}
+
 	return Config{
 		PublicURL:       publicURL,
 		ListenAddr:      address,
@@ -54,6 +60,7 @@ func FromEnv() (Config, error) {
 		RateLimitRefill: rateLimitRefill,
 		StateDir:        stateDir,
 		AdminPassword:   adminPassword,
+		DraftPassword:   draftPassword,
 		Debug:           Debug == "true",
 	}, nil
 }

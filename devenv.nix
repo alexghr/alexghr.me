@@ -26,8 +26,9 @@
 
         scripts.p-dev = {
           exec = ''
-            # just a dev password
+            # just dev passwords
             export ADMIN_PASS="JDJhJDEwJGFUNVpoN3k2MkU3ejQyZ1c3NjI4ZGVueFVuWU93Lnp5U1g1MVVINXV5VlhrSFJIcXBDcXBx"
+            export DRAFT_PASS="JDJhJDEwJHEzLk4yQVc1dU1mQmxxbjhjWVo5dE8uNzY2MzdNa1lySTZZaWZ6VnhtL1pKSnhaUWNLaWQu"
             watchexec -e go -r -n -- go run \
               "-ldflags=-X github.com/alexghr/alexghr.me/internal/config.Debug=true" \
               ./cmd/server

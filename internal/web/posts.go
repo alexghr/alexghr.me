@@ -58,35 +58,37 @@ func (h handler) servePosts(w http.ResponseWriter, r *http.Request) {
 	h.renderPostPage(w, r, "posts", pageModel)
 }
 
-func (h handler) servePost(w http.ResponseWriter, r *http.Request) {
-	post, err := h.store.GetPost(r.Context(), r.PathValue("slug"))
-	if errors.Is(err, sql.ErrNoRows) {
-		h.redirect(w, r)
-		return
-	}
-	if err != nil {
-		h.logger.ErrorContext(r.Context(), "get post", "error", err)
-		h.renderError(w, r)
-		return
-	}
+func (h handler) servePost(onlyPublic bool) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		post, err := h.store.GetPost(r.Context(), r.PathValue("slug"))
+		if errors.Is(err, sql.ErrNoRows) {
+			h.redirect(w, r)
+			return
+		}
+		if err != nil {
+			h.logger.ErrorContext(r.Context(), "get post", "error", err)
+			h.renderError(w, r)
+			return
+		}
 
-	if !post.Status.Public() {
-		h.logger.WarnContext(r.Context(), "render draft post", "slug", post.Slug, "error", err)
-		h.renderNotFound(w, r)
-		return
-	}
+		if onlyPublic && !post.Status.Public() {
+			h.logger.WarnContext(r.Context(), "render draft post", "slug", post.Slug, "error", err)
+			h.renderNotFound(w, r)
+			return
+		}
 
-	body, err := renderPostBody(post)
-	if err != nil {
-		h.logger.ErrorContext(r.Context(), "render post body", "slug", post.Slug, "error", err)
-		h.renderError(w, r)
-		return
-	}
-	h.renderPostPage(w, r, "post", struct {
-		model
-		Post state.Post
-		Body template.HTML
-	}{model{InstanceID: h.id, Debug: h.debug, CurrentPage: "post"}, post, body})
+		body, err := renderPostBody(post)
+		if err != nil {
+			h.logger.ErrorContext(r.Context(), "render post body", "slug", post.Slug, "error", err)
+			h.renderError(w, r)
+			return
+		}
+		h.renderPostPage(w, r, "post", struct {
+			model
+			Post state.Post
+			Body template.HTML
+		}{model{InstanceID: h.id, Debug: h.debug, CurrentPage: "post"}, post, body})
+	})
 }
 
 func renderPostBody(post state.Post) (template.HTML, error) {

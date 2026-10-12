@@ -42,6 +42,7 @@ type HandlerOptions struct {
 	RateLimitBurst  uint64
 	RateLimitRefill float64
 	AdminPassword   string
+	DraftPassword   string
 	PublicURL       string
 }
 
@@ -91,12 +92,23 @@ func NewHTTPHandler(store *state.Store, logger *slog.Logger, options HandlerOpti
 		return nil, fmt.Errorf("decode admin password: %w", err)
 	}
 
+	draftPasswordBytes, err := decodePassword(options.DraftPassword)
+	if err != nil {
+		return nil, fmt.Errorf("decode draft password: %w", err)
+	}
+
 	mux := http.NewServeMux()
 	mux.Handle("/static/", http.StripPrefix("/static/", static))
+
 	mux.HandleFunc("GET /{$}", h.serveIndex)
 	mux.HandleFunc("GET /blog/{$}", h.servePosts)
-	mux.HandleFunc("GET /blog/{slug}/{$}", h.servePost)
-	mux.HandleFunc("GET /blog/{slug}/assets/{path...}", h.servePostAsset)
+
+	mux.Handle("GET /blog/{slug}/{$}", h.servePost(true))
+	mux.Handle("GET /blog/{slug}/assets/{path...}", h.servePostAsset(true))
+
+	mux.Handle("GET /draft/blog/{slug}/{$}", basicAuth(h.servePost(false), "draft", "", draftPasswordBytes))
+	mux.Handle("GET /draft/blog/{slug}/assets/{path...}", basicAuth(h.servePostAsset(false), "draft", "", draftPasswordBytes))
+
 	mux.HandleFunc("GET /robots.txt", h.serveRobots)
 	mux.HandleFunc("GET /asset/{hash}/{path...}", h.serveAsset)
 	mux.HandleFunc("GET /rss.xml", h.serverRSS)
@@ -104,7 +116,7 @@ func NewHTTPHandler(store *state.Store, logger *slog.Logger, options HandlerOpti
 		mux.HandleFunc("GET /api/reload", h.notifyReload)
 	}
 
-	admin := basicAuth(adminHandler(h), adminPasswordBytes)
+	admin := basicAuth(adminHandler(h), "admin", "admin", adminPasswordBytes)
 	mux.Handle("/admin/", http.StripPrefix("/admin", admin))
 
 	mux.HandleFunc("/{redirect...}", h.redirect)

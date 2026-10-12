@@ -56,6 +56,7 @@ func run(logger *slog.Logger, cfg config.Config) error {
 		RateLimitBurst:  cfg.RateLimitBurst,
 		RateLimitRefill: cfg.RateLimitRefill,
 		AdminPassword:   cfg.AdminPassword,
+		DraftPassword:   cfg.DraftPassword,
 		Debug:           cfg.Debug,
 	})
 	if err != nil {
