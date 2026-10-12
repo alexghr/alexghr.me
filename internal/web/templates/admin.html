@@ -1,26 +1,56 @@
 {{define "main"}}
 <h1>Admin page</h1>
-<form action="/admin/api/upload" method="post" enctype="multipart/form-data">
-  <label for="file">File</label>
-  <input type="file" id="file" name="file" required>
-  <button type="submit">Upload</button>
-</form>
-<h2>Assets</h2>
-<ul>
-  {{range .Assets}}
-  <li><a href="{{.URL}}">{{.Name}}</a></li>
-  {{else}}
-  <li>No assets uploaded yet.</li>
-  {{end}}
-</ul>
+
+<section>
+  <h2>Posts</h2>
+
+  <ol>
+    {{range .Posts}}
+      <li>
+        {{if eq .Status "draft"}}<span title="Draft">📝</span>
+        {{else if eq .Status "archived"}}<span title="Archived">📦</span>
+        {{else if eq .Status "published"}}<span title="Published">✅</span>{{end}}
+
+        <button type="button" class="post-dialog-button" data-dialog="post-dialog-{{.ID}}">{{.Title}}</button>
+        <dialog id="post-dialog-{{.ID}}">
+          <h2 id="post-dialog-title-{{.ID}}">{{.Title}}</h2>
+          <a href="{{.URL}}">Open post</a>
+
+          <form method="post" action="/admin/api/posts/{{.ID}}/status">
+            <label for="post-status-{{.ID}}">Status</label>
+            <select id="post-status-{{.ID}}" name="status">
+              <option value="draft"{{if eq .Status "draft"}} selected{{end}}>Draft</option>
+              <option value="archived"{{if eq .Status "archived"}} selected{{end}}>Archived</option>
+              <option value="published"{{if eq .Status "published"}} selected{{end}}>Published</option>
+            </select>
+
+            <button type="submit">Save status</button>
+            <button type="submit" formmethod="dialog" formnovalidate>Cancel</button>
+          </form>
+        </dialog>
+      </li>
+    {{end}}
+  </ol>
+</section>
+
+<section>
+  <h2>Assets</h2>
+  <form action="/admin/api/upload" method="post" enctype="multipart/form-data">
+    <label for="file">File</label>
+    <input type="file" id="file" name="file" required>
+    <button type="submit">Upload</button>
+  </form>
+  <ul>
+    {{range .Assets}}
+    <li><a href="{{.URL}}">{{.Name}}</a></li>
+    {{else}}
+    <li>No assets uploaded yet.</li>
+    {{end}}
+  </ul>
+</section>
 {{end}}
 
 {{define "headEnd"}}
-<style>
-  form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-</style>
+<link rel="stylesheet" href="/static/admin.css">
+<script type="module" src="/static/admin.js"></script>
 {{end}}

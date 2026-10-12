@@ -134,7 +134,7 @@ func (h handler) serveIndex(w http.ResponseWriter, r *http.Request) {
 	t, err := h.templates.get("index")
 
 	if err != nil {
-		h.renderError(w, r)
+		h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -168,7 +168,7 @@ func (h handler) redirect(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		h.renderError(w, r)
+		h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -207,12 +207,8 @@ func (h handler) redirect(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, to.String(), code)
 }
 
-func (h handler) renderError(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(500)
-	_, err := w.Write([]byte("<body>there was an error</body>"))
-	if err != nil {
-		h.logger.ErrorContext(r.Context(), "render 500", "method", r.Method, "path", r.URL.Path, "error", err)
-	}
+func (h handler) renderError(w http.ResponseWriter, r *http.Request, err string, code int) {
+	http.Error(w, err, code)
 }
 
 func (h handler) renderNotFound(w http.ResponseWriter, r *http.Request) {

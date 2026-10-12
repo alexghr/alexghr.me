@@ -32,10 +32,10 @@ type rssItem struct {
 const rssItemPage = 5
 
 func (h handler) serverRSS(w http.ResponseWriter, r *http.Request) {
-	posts, err := h.store.ListPosts(r.Context(), state.PostStatusPublished, rssItemPage, 0)
+	posts, err := h.store.ListPosts(r.Context(), state.ListPostsOptions{Status: state.PostStatusPublished, Limit: rssItemPage})
 	if err != nil {
 		h.logger.ErrorContext(r.Context(), "error generating RSS feed", "error", err)
-		h.renderError(w, r)
+		h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -68,7 +68,7 @@ func (h handler) serverRSS(w http.ResponseWriter, r *http.Request) {
 	data, err := xml.Marshal(feed)
 	if err != nil {
 		h.logger.ErrorContext(r.Context(), "encode RSS", "error", err)
-		h.renderError(w, r)
+		h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 		return
 	}
 

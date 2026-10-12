@@ -39,7 +39,7 @@ func TestRedirects(t *testing.T) {
 		{"archived", state.PostStatusArchived},
 	} {
 		if _, err := store.AddPost(ctx, state.PostInit{
-			PostMetadataInit: state.PostMetadataInit{Slug: post.slug, Title: post.slug, Status: post.status},
+			PostMetadataInit: state.PostMetadataInit{Slug: post.slug, Title: post.slug, Status: &post.status},
 			Body:             "<p>Existing post</p>",
 			BodyType:         state.PostBodyHtml,
 			Assets:           []state.PostAssetInit{{Path: "assets/new.txt", ContentType: "text/plain", Data: []byte("asset")}},

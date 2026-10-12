@@ -39,13 +39,13 @@ func (s PostStatus) Public() bool {
 }
 
 type PostMetadataInit struct {
-	Slug        string     `json:"slug"`
-	Title       string     `json:"title"`
-	Description string     `json:"description"`
-	PublishedAt *time.Time `json:"publishedAt"`
-	UpdatedAt   *time.Time `json:"updatedAt"`
-	Tags        []string   `json:"tags"`
-	Status      PostStatus `json:"status"`
+	Slug        string      `json:"slug"`
+	Title       string      `json:"title"`
+	Description string      `json:"description"`
+	PublishedAt *time.Time  `json:"publishedAt"`
+	UpdatedAt   *time.Time  `json:"updatedAt"`
+	Tags        []string    `json:"tags"`
+	Status      *PostStatus `json:"status"`
 }
 
 type PostAssetInit struct {
@@ -95,6 +95,32 @@ func (s *Store) AddPost(ctx context.Context, post PostInit) (Post, error) {
 	return s.savePost(ctx, post, false)
 }
 
+func (s *Store) UpdatePostStatus(ctx context.Context, id int64, status PostStatus) error {
+	if !status.Valid() {
+		return fmt.Errorf("invalid post status %q", status)
+	}
+
+	now := time.Now().UTC().Format(time.RFC3339Nano)
+	result, err := s.db.ExecContext(ctx, `UPDATE posts SET status = ?,
+		published_at = CASE WHEN ? = 'published' THEN COALESCE(published_at, ?) ELSE published_at END,
+		updated_at = ? WHERE id = ?`, status, status, now, now, id)
+
+	if err != nil {
+		return fmt.Errorf("update post status: %w", err)
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("check updated post: %w", err)
+	}
+
+	if count == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
 func (s *Store) savePost(ctx context.Context, post PostInit, upsert bool) (Post, error) {
 	if strings.TrimSpace(post.Slug) == "" {
 		return Post{}, fmt.Errorf("empty slug")
@@ -105,8 +131,8 @@ func (s *Store) savePost(ctx context.Context, post PostInit, upsert bool) (Post,
 	if post.BodyType != PostBodyHtml && post.BodyType != PostBodyHtmlTemplate {
 		return Post{}, fmt.Errorf("unsupported post body type %q", post.BodyType)
 	}
-	if !post.Status.Valid() {
-		return Post{}, fmt.Errorf("invalid post status %s", post.Status)
+	if post.Status != nil && !post.Status.Valid() {
+		return Post{}, fmt.Errorf("invalid post status %s", *post.Status)
 	}
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -145,9 +171,13 @@ func (s *Store) savePost(ctx context.Context, post PostInit, upsert bool) (Post,
 			updatedAt = sql.NullString{String: time.Now().UTC().Format(time.RFC3339Nano), Valid: true}
 		}
 
+		postStatus := existing.Status
+		if post.Status != nil {
+			postStatus = *post.Status
+		}
 		_, err = tx.ExecContext(ctx, `UPDATE posts SET title = ?, description = ?, body = ?, body_type = ?, status = ?,
 			published_at = COALESCE(?, published_at), updated_at = ? WHERE id = ?`,
-			post.Title, post.Description, post.Body, post.BodyType, post.Status, publishedAt, updatedAt, existing.ID)
+			post.Title, post.Description, post.Body, post.BodyType, postStatus, publishedAt, updatedAt, existing.ID)
 		if err != nil {
 			return Post{}, fmt.Errorf("update post: %w", err)
 		}
@@ -161,10 +191,15 @@ func (s *Store) savePost(ctx context.Context, post PostInit, upsert bool) (Post,
 
 		id = existing.ID
 	} else {
+		postStatus := PostStatusDraft
+		if post.Status != nil {
+			postStatus = *post.Status
+		}
+
 		res, err := tx.ExecContext(ctx,
 			`INSERT INTO posts(slug, title, description, body, body_type, status, published_at, updated_at)
 		VALUES(?, ?, ?, ?, ?, ?, ?, ?)`,
-			post.Slug, post.Title, post.Description, post.Body, post.BodyType, post.Status,
+			post.Slug, post.Title, post.Description, post.Body, post.BodyType, postStatus,
 			publishedAt, updatedAt,
 		)
 
@@ -278,15 +313,41 @@ func (s *Store) addPostAssets(ctx context.Context, tx *sql.Tx, postID int64, pos
 	return assets, nil
 }
 
-func (s *Store) ListPosts(ctx context.Context, status PostStatus, limit, offset int) ([]PostMetadata, error) {
-	if limit <= 0 || offset < 0 {
-		return nil, fmt.Errorf("invalid pagination: limit %d, offset %d", limit, offset)
+type ListPostsOptions struct {
+	Status PostStatus // leave unset for all statuses
+	Limit  int        // zero limit disables pagination
+	Offset int
+}
+
+func (s *Store) ListPosts(ctx context.Context, o ListPostsOptions) ([]PostMetadata, error) {
+	if o.Limit < 0 || o.Offset < 0 || (o.Offset != 0 && o.Limit == 0) {
+		return nil, fmt.Errorf("invalid pagination: limit %d, offset %d", o.Limit, o.Offset)
 	}
-	rows, err := s.db.QueryContext(ctx, `SELECT id, slug, title, description, body_type, status,
-		created_at, published_at, updated_at FROM posts
-		WHERE status = ?
-		ORDER BY published_at DESC, id DESC
-		LIMIT ? OFFSET ?`, status, limit, offset)
+
+	var sqlText strings.Builder
+	var bindings []any
+
+	sqlText.WriteString(`SELECT id, slug, title, description, body_type, status,
+		created_at, published_at, updated_at FROM posts`)
+
+	if o.Status != "" {
+		sqlText.WriteString(" WHERE status = ?")
+		bindings = append(bindings, o.Status)
+	}
+
+	sqlText.WriteString(" ORDER BY published_at DESC, id DESC")
+
+	if o.Limit != 0 {
+		sqlText.WriteString(" LIMIT ?")
+		bindings = append(bindings, o.Limit)
+	}
+
+	if o.Offset != 0 {
+		sqlText.WriteString(" OFFSET ?")
+		bindings = append(bindings, o.Offset)
+	}
+
+	rows, err := s.db.QueryContext(ctx, sqlText.String(), bindings...)
 	if err != nil {
 		return nil, fmt.Errorf("list posts: %w", err)
 	}

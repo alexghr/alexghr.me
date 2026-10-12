@@ -35,10 +35,14 @@ func (h handler) servePosts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fetch one extra post to determine whether another page exists.
-	posts, err := h.store.ListPosts(r.Context(), state.PostStatusPublished, pageSize+1, (page-1)*pageSize)
+	posts, err := h.store.ListPosts(r.Context(), state.ListPostsOptions{
+		Status: state.PostStatusPublished,
+		Limit:  pageSize + 1,
+		Offset: (page - 1) * pageSize,
+	})
 	if err != nil {
 		h.logger.ErrorContext(r.Context(), "list posts", "error", err)
-		h.renderError(w, r)
+		h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -67,7 +71,7 @@ func (h handler) servePost(onlyPublic bool) http.Handler {
 		}
 		if err != nil {
 			h.logger.ErrorContext(r.Context(), "get post", "error", err)
-			h.renderError(w, r)
+			h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 			return
 		}
 
@@ -80,7 +84,7 @@ func (h handler) servePost(onlyPublic bool) http.Handler {
 		body, err := renderPostBody(post)
 		if err != nil {
 			h.logger.ErrorContext(r.Context(), "render post body", "slug", post.Slug, "error", err)
-			h.renderError(w, r)
+			h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 			return
 		}
 		h.renderPostPage(w, r, "post", struct {
@@ -118,7 +122,7 @@ func (h handler) renderPostPage(w http.ResponseWriter, r *http.Request, name str
 	}
 	if err != nil {
 		h.logger.ErrorContext(r.Context(), "render post page", "template", name, "error", err)
-		h.renderError(w, r)
+		h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")

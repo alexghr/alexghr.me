@@ -23,8 +23,9 @@ func postTestStore(t *testing.T) *Store {
 
 func samplePost() PostInit {
 	published := time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
+	status := PostStatusPublished
 	return PostInit{
-		PostMetadataInit: PostMetadataInit{Slug: "sample", Title: "Sample", Description: "Original description", PublishedAt: &published, Tags: []string{"go", "blog"}, Status: PostStatusPublished},
+		PostMetadataInit: PostMetadataInit{Slug: "sample", Title: "Sample", Description: "Original description", PublishedAt: &published, Tags: []string{"go", "blog"}, Status: &status},
 		Body:             "original body", BodyType: PostBodyHtmlTemplate,
 		Assets: []PostAssetInit{{Path: "assets/old.svg", ContentType: "image/svg+xml", Data: []byte("old image")}},
 	}

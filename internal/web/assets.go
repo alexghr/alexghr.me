@@ -111,7 +111,7 @@ func (h handler) serveArchiveAsset(w http.ResponseWriter, r *http.Request, archi
 	}
 	if err != nil {
 		h.logger.ErrorContext(r.Context(), "read archive file", "error", err)
-		h.renderError(w, r)
+		h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -120,7 +120,7 @@ func (h handler) serveArchiveAsset(w http.ResponseWriter, r *http.Request, archi
 	info, err := file.Stat()
 	if err != nil {
 		h.logger.ErrorContext(r.Context(), "stat archive file", "error", err)
-		h.renderError(w, r)
+		h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -132,7 +132,7 @@ func (h handler) serveArchiveAsset(w http.ResponseWriter, r *http.Request, archi
 	data, err := io.ReadAll(file)
 	if err != nil {
 		h.logger.ErrorContext(r.Context(), "determine file type", "error", err)
-		h.renderError(w, r)
+		h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
