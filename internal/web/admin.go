@@ -55,14 +55,14 @@ func (h handler) serveAdmin(w http.ResponseWriter, r *http.Request) {
 
 	assets, err := h.store.ListAssets(r.Context())
 	if err != nil {
-		h.logger.ErrorContext(r.Context(), "list assets", "error", err)
+		h.requestLogger(r).ErrorContext(r.Context(), "list assets", "error", err)
 		h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
 	posts, err := h.store.ListPosts(r.Context(), state.ListPostsOptions{SortColumn: "created_at"})
 	if err != nil {
-		h.logger.ErrorContext(r.Context(), "list posts", "error", err)
+		h.requestLogger(r).ErrorContext(r.Context(), "list posts", "error", err)
 		h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -99,34 +99,34 @@ func (h handler) serveAdmin(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := t.ExecuteTemplate(w, "base", m); err != nil {
-		h.logger.ErrorContext(r.Context(), "serve admin", "method", r.Method, "path", r.URL.Path, "error", err)
+		h.requestLogger(r).ErrorContext(r.Context(), "serve admin", "method", r.Method, "path", r.URL.Path, "error", err)
 	}
 }
 
 func (h handler) serveUpdatePostStatus(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil || id <= 0 {
-		h.logger.ErrorContext(r.Context(), "invalid post id", "error", err)
+		h.requestLogger(r).ErrorContext(r.Context(), "invalid post id", "error", err)
 		h.renderError(w, r, "invalid post id", http.StatusBadRequest)
 		return
 	}
 
 	r.Body = http.MaxBytesReader(w, r.Body, 4096)
 	if err := r.ParseForm(); err != nil {
-		h.logger.ErrorContext(r.Context(), "invalid post form", "post_id", id, "error", err)
+		h.requestLogger(r).ErrorContext(r.Context(), "invalid post form", "post_id", id, "error", err)
 		h.renderError(w, r, "invalid post form", http.StatusBadRequest)
 		return
 	}
 
 	status := state.PostStatus(r.PostForm.Get("status"))
 	if !status.Valid() {
-		h.logger.ErrorContext(r.Context(), "invalid post status", "post_id", id, "error", err)
+		h.requestLogger(r).ErrorContext(r.Context(), "invalid post status", "post_id", id, "error", err)
 		h.renderError(w, r, "invalid post status", http.StatusBadRequest)
 		return
 	}
 
 	if err := h.store.UpdatePostStatus(r.Context(), id, status); err != nil {
-		h.logger.ErrorContext(r.Context(), "update post status", "post_id", id, "error", err)
+		h.requestLogger(r).ErrorContext(r.Context(), "update post status", "post_id", id, "error", err)
 		h.renderError(w, r, "error updating post", http.StatusInternalServerError)
 		return
 	}
@@ -166,7 +166,7 @@ func (h handler) serveUpload(w http.ResponseWriter, r *http.Request) {
 		}
 		_, err = h.store.AddAsset(r.Context(), part.FileName(), state.AssetContentType(contentType), data)
 		if err != nil {
-			h.logger.ErrorContext(r.Context(), "save uploaded asset", "error", err)
+			h.requestLogger(r).ErrorContext(r.Context(), "save uploaded asset", "error", err)
 			http.Error(w, "could not save file", http.StatusInternalServerError)
 			return
 		}

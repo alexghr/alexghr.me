@@ -37,7 +37,7 @@ func (h handler) serveAsset(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		h.logger.ErrorContext(r.Context(), "read asset", "error", err)
+		h.requestLogger(r).ErrorContext(r.Context(), "read asset", "error", err)
 		http.Error(w, "could not read asset", http.StatusInternalServerError)
 		return
 	}
@@ -45,7 +45,7 @@ func (h handler) serveAsset(w http.ResponseWriter, r *http.Request) {
 	if asset.ContentType.IsArchive() && path != "" && path != "/" {
 		archive, err := zip.NewReader(bytes.NewReader(asset.Data), int64(len(asset.Data)))
 		if err != nil {
-			h.logger.ErrorContext(r.Context(), "read archive", "error", err)
+			h.requestLogger(r).ErrorContext(r.Context(), "read archive", "error", err)
 			http.Error(w, "could not read archive", http.StatusInternalServerError)
 			return
 		}
@@ -75,7 +75,7 @@ func (h handler) servePostAsset(onlyPublic bool) http.Handler {
 			return
 		}
 		if err != nil {
-			h.logger.ErrorContext(r.Context(), "read post asset", "error", err)
+			h.requestLogger(r).ErrorContext(r.Context(), "read post asset", "error", err)
 			http.Error(w, "could not read asset", http.StatusInternalServerError)
 			return
 		}
@@ -110,7 +110,7 @@ func (h handler) serveArchiveAsset(w http.ResponseWriter, r *http.Request, archi
 		return
 	}
 	if err != nil {
-		h.logger.ErrorContext(r.Context(), "read archive file", "error", err)
+		h.requestLogger(r).ErrorContext(r.Context(), "read archive file", "error", err)
 		h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -119,7 +119,7 @@ func (h handler) serveArchiveAsset(w http.ResponseWriter, r *http.Request, archi
 
 	info, err := file.Stat()
 	if err != nil {
-		h.logger.ErrorContext(r.Context(), "stat archive file", "error", err)
+		h.requestLogger(r).ErrorContext(r.Context(), "stat archive file", "error", err)
 		h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -131,7 +131,7 @@ func (h handler) serveArchiveAsset(w http.ResponseWriter, r *http.Request, archi
 
 	data, err := io.ReadAll(file)
 	if err != nil {
-		h.logger.ErrorContext(r.Context(), "determine file type", "error", err)
+		h.requestLogger(r).ErrorContext(r.Context(), "determine file type", "error", err)
 		h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 		return
 	}

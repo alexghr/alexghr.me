@@ -34,7 +34,7 @@ const rssItemPage = 5
 func (h handler) serverRSS(w http.ResponseWriter, r *http.Request) {
 	posts, err := h.store.ListPosts(r.Context(), state.ListPostsOptions{Status: state.PostStatusPublished, Limit: rssItemPage})
 	if err != nil {
-		h.logger.ErrorContext(r.Context(), "error generating RSS feed", "error", err)
+		h.requestLogger(r).ErrorContext(r.Context(), "error generating RSS feed", "error", err)
 		h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -67,7 +67,7 @@ func (h handler) serverRSS(w http.ResponseWriter, r *http.Request) {
 
 	data, err := xml.Marshal(feed)
 	if err != nil {
-		h.logger.ErrorContext(r.Context(), "encode RSS", "error", err)
+		h.requestLogger(r).ErrorContext(r.Context(), "encode RSS", "error", err)
 		h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -75,6 +75,6 @@ func (h handler) serverRSS(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/rss+xml; charset=utf-8")
 	w.Header().Set("Cache-Control", "public, max-age=1800")
 	if _, err := w.Write(append([]byte(xml.Header), data...)); err != nil {
-		h.logger.ErrorContext(r.Context(), "write RSS", "error", err)
+		h.requestLogger(r).ErrorContext(r.Context(), "write RSS", "error", err)
 	}
 }

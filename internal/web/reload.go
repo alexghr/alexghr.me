@@ -28,7 +28,7 @@ func (h handler) notifyReload(w http.ResponseWriter, r *http.Request) {
 	for _, dir := range dirs {
 		watcher, err := newFileWatcher(dir)
 		if err != nil {
-			h.logger.ErrorContext(r.Context(), "SSE create watcher", "dir", dir, "error", err)
+			h.requestLogger(r).ErrorContext(r.Context(), "SSE create watcher", "dir", dir, "error", err)
 			http.Error(w, "failed to setup watchers", http.StatusInternalServerError)
 			return
 		}
@@ -38,7 +38,7 @@ func (h handler) notifyReload(w http.ResponseWriter, r *http.Request) {
 
 	// Reconnect promptly after a development server restart.
 	if _, err := io.WriteString(w, "retry: 200\n: connected\n\n"); err != nil {
-		h.logger.ErrorContext(r.Context(), "SSE", "method", r.Method, "path", r.URL.Path, "error", err)
+		h.requestLogger(r).ErrorContext(r.Context(), "SSE", "method", r.Method, "path", r.URL.Path, "error", err)
 		return
 	}
 	flusher.Flush()
@@ -56,7 +56,7 @@ func (h handler) notifyReload(w http.ResponseWriter, r *http.Request) {
 	if id != "" && id != h.id {
 		h.logger.Debug("Reloading because of instance ID mismatch", "client instance id", id, "server instance id", h.id)
 		if err := reload(); err != nil {
-			h.logger.ErrorContext(r.Context(), "SSE", "method", r.Method, "path", r.URL.Path, "error", err)
+			h.requestLogger(r).ErrorContext(r.Context(), "SSE", "method", r.Method, "path", r.URL.Path, "error", err)
 			return
 		}
 	}
@@ -71,7 +71,7 @@ func (h handler) notifyReload(w http.ResponseWriter, r *http.Request) {
 			for _, w := range watchers {
 				res, err := w.poll()
 				if err != nil {
-					h.logger.WarnContext(r.Context(), "SSE poll files", "error", err)
+					h.requestLogger(r).WarnContext(r.Context(), "SSE poll files", "error", err)
 					continue
 				}
 
@@ -80,7 +80,7 @@ func (h handler) notifyReload(w http.ResponseWriter, r *http.Request) {
 
 			if changed {
 				if err := reload(); err != nil {
-					h.logger.ErrorContext(r.Context(), "SSE", "method", r.Method, "path", r.URL.Path, "error", err)
+					h.requestLogger(r).ErrorContext(r.Context(), "SSE", "method", r.Method, "path", r.URL.Path, "error", err)
 					return
 				}
 			}

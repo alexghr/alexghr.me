@@ -41,7 +41,7 @@ func (h handler) servePosts(w http.ResponseWriter, r *http.Request) {
 		Offset: (page - 1) * pageSize,
 	})
 	if err != nil {
-		h.logger.ErrorContext(r.Context(), "list posts", "error", err)
+		h.requestLogger(r).ErrorContext(r.Context(), "list posts", "error", err)
 		h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -70,20 +70,20 @@ func (h handler) servePost(onlyPublic bool) http.Handler {
 			return
 		}
 		if err != nil {
-			h.logger.ErrorContext(r.Context(), "get post", "error", err)
+			h.requestLogger(r).ErrorContext(r.Context(), "get post", "error", err)
 			h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 			return
 		}
 
 		if onlyPublic && !post.Status.Public() {
-			h.logger.WarnContext(r.Context(), "render draft post", "slug", post.Slug, "error", err)
+			h.requestLogger(r).WarnContext(r.Context(), "render draft post", "slug", post.Slug, "error", err)
 			h.renderNotFound(w, r)
 			return
 		}
 
 		body, err := renderPostBody(post)
 		if err != nil {
-			h.logger.ErrorContext(r.Context(), "render post body", "slug", post.Slug, "error", err)
+			h.requestLogger(r).ErrorContext(r.Context(), "render post body", "slug", post.Slug, "error", err)
 			h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 			return
 		}
@@ -121,12 +121,12 @@ func (h handler) renderPostPage(w http.ResponseWriter, r *http.Request, name str
 		err = t.ExecuteTemplate(&page, "base", data)
 	}
 	if err != nil {
-		h.logger.ErrorContext(r.Context(), "render post page", "template", name, "error", err)
+		h.requestLogger(r).ErrorContext(r.Context(), "render post page", "template", name, "error", err)
 		h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if _, err := page.WriteTo(w); err != nil {
-		h.logger.ErrorContext(r.Context(), "write post page", "error", err)
+		h.requestLogger(r).ErrorContext(r.Context(), "write post page", "error", err)
 	}
 }

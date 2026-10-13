@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/fs"
 	"log/slog"
+	"maps"
 	"math/rand/v2"
 	"net/http"
 	"net/url"
@@ -121,7 +122,7 @@ func NewHTTPHandler(store *state.Store, logger *slog.Logger, options HandlerOpti
 
 	mux.HandleFunc("/{redirect...}", h.redirect)
 
-	var result http.Handler = accessLog(logger, rateLimit.wrap(compress(mux)))
+	var result http.Handler = h.initContext(rateLimit.wrap(h.accessLog(h.trackView((compress(mux))))))
 	if !options.Debug {
 		// Development uses inline JavaScript and a reload script.
 		result = securityHeaders(result)
@@ -142,7 +143,7 @@ func (h handler) serveIndex(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := t.ExecuteTemplate(w, "base", m); err != nil {
-		h.logger.ErrorContext(r.Context(), "serve index", "method", r.Method, "path", r.URL.Path, "error", err)
+		h.requestLogger(r).ErrorContext(r.Context(), "serve index", "method", r.Method, "path", r.URL.Path, "error", err)
 	}
 }
 
@@ -192,10 +193,7 @@ func (h handler) redirect(w http.ResponseWriter, r *http.Request) {
 		to.RawQuery = r.URL.RawQuery
 	} else if r.URL.RawQuery != "" {
 		query := r.URL.Query()
-		// Configured destination parameters take precedence over incoming ones.
-		for key, values := range to.Query() {
-			query[key] = values
-		}
+		maps.Copy(query, to.Query())
 		to.RawQuery = query.Encode()
 	}
 
@@ -207,7 +205,7 @@ func (h handler) redirect(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, to.String(), code)
 }
 
-func (h handler) renderError(w http.ResponseWriter, r *http.Request, err string, code int) {
+func (h handler) renderError(w http.ResponseWriter, _ *http.Request, err string, code int) {
 	http.Error(w, err, code)
 }
 
