@@ -314,9 +314,10 @@ func (s *Store) addPostAssets(ctx context.Context, tx *sql.Tx, postID int64, pos
 }
 
 type ListPostsOptions struct {
-	Status PostStatus // leave unset for all statuses
-	Limit  int        // zero limit disables pagination
-	Offset int
+	SortColumn string     // created_at or published_at
+	Status     PostStatus // leave unset for all statuses
+	Limit      int        // zero limit disables pagination
+	Offset     int
 }
 
 func (s *Store) ListPosts(ctx context.Context, o ListPostsOptions) ([]PostMetadata, error) {
@@ -335,7 +336,14 @@ func (s *Store) ListPosts(ctx context.Context, o ListPostsOptions) ([]PostMetada
 		bindings = append(bindings, o.Status)
 	}
 
-	sqlText.WriteString(" ORDER BY published_at DESC, id DESC")
+	switch o.SortColumn {
+	case "", "published_at":
+		sqlText.WriteString(" ORDER BY published_at DESC, id DESC")
+	case "created_at":
+		sqlText.WriteString(" ORDER BY created_at DESC, id DESC")
+	default:
+		return nil, fmt.Errorf("invalid sort columns: %s", o.SortColumn)
+	}
 
 	if o.Limit != 0 {
 		sqlText.WriteString(" LIMIT ?")

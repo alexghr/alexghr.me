@@ -60,7 +60,7 @@ func (h handler) serveAdmin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	posts, err := h.store.ListPosts(r.Context(), state.ListPostsOptions{})
+	posts, err := h.store.ListPosts(r.Context(), state.ListPostsOptions{SortColumn: "created_at"})
 	if err != nil {
 		h.logger.ErrorContext(r.Context(), "list posts", "error", err)
 		h.renderError(w, r, "internal server error", http.StatusInternalServerError)
