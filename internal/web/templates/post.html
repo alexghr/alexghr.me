@@ -5,8 +5,18 @@
 <article>
   <header>
     <h1>{{.Post.Title}}</h1>
-    {{if not .Post.PublishedAt.IsZero}}<p>Published <time datetime="{{.Post.PublishedAt.Format "2006-01-02"}}">{{.Post.PublishedAt.Format "2 January 2006"}}</time></p>{{end}}
-    {{if not .Post.UpdatedAt.IsZero}}<p>Updated <time datetime="{{.Post.UpdatedAt.Format "2006-01-02"}}">{{.Post.UpdatedAt.Format "2 January 2006"}}</time></p>{{end}}
+    <p class="post-dates">
+      {{if not .Post.PublishedAt.IsZero}}
+      <span class="post-date">
+        <strong>Published</strong> <time datetime="{{.Post.PublishedAt.Format "2006-01-02"}}">{{.Post.PublishedAt.Format "2 January 2006"}}</time>
+      </span>
+      {{end}}
+      {{if not .Post.UpdatedAt.IsZero}}
+      <span class="post-date">
+        <strong>Updated</strong> <time datetime="{{.Post.UpdatedAt.Format "2006-01-02"}}">{{.Post.UpdatedAt.Format "2 January 2006"}}</time>
+      </span>
+      {{end}}
+    </p>
   </header>
   {{.Body}}
 </article>
