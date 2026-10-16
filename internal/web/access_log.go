@@ -118,7 +118,7 @@ func isBot(path string) bool {
 	if strings.Contains(path, ".php") {
 		return true
 	}
-	for _, prefix := range []string{"/wp-admin", "/wp-content"} {
+	for _, prefix := range []string{"/wp-admin", "/wp-content", "/wp-includes", "/cgi-bin", "/.git", "/.aws", "/.env"} {
 		if path == prefix || strings.HasPrefix(path, prefix+"/") {
 			return true
 		}
