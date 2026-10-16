@@ -69,7 +69,7 @@ func (h handler) accessLog(next http.Handler) http.Handler {
 
 func (h handler) trackView(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !isInterestingPage(r) || r.Method != http.MethodGet {
+		if !isInterestingPage(r) || r.Method != http.MethodGet || isBot(r.URL.Path) {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -110,6 +110,20 @@ func (h handler) trackView(next http.Handler) http.Handler {
 			}
 		}
 	})
+}
+
+// behold.. The Internet
+func isBot(path string) bool {
+	path = strings.ToLower(path)
+	if strings.Contains(path, ".php") {
+		return true
+	}
+	for _, prefix := range []string{"/wp-admin", "/wp-content"} {
+		if path == prefix || strings.HasPrefix(path, prefix+"/") {
+			return true
+		}
+	}
+	return false
 }
 
 func optionalString(value string) *string {
