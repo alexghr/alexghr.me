@@ -81,7 +81,7 @@ func (h handler) servePost(onlyPublic bool) http.Handler {
 			return
 		}
 
-		body, err := renderPostBody(post)
+		tpl, err := renderPostBody(post)
 		if err != nil {
 			h.requestLogger(r).ErrorContext(r.Context(), "render post body", "slug", post.Slug, "error", err)
 			h.renderError(w, r, "internal server error", http.StatusInternalServerError)
@@ -91,26 +91,41 @@ func (h handler) servePost(onlyPublic bool) http.Handler {
 			model
 			Post state.Post
 			Body template.HTML
-		}{model{InstanceID: h.id, Debug: h.debug, CurrentPage: "post"}, post, body})
+			Head template.HTML
+		}{model{InstanceID: h.id, Debug: h.debug, CurrentPage: "post"}, post, tpl.Body, tpl.Head})
 	})
 }
 
-func renderPostBody(post state.Post) (template.HTML, error) {
+type renderedPost struct {
+	Body template.HTML
+	Head template.HTML
+}
+
+func renderPostBody(post state.Post) (renderedPost, error) {
 	switch post.BodyType {
 	case state.PostBodyHtml:
-		return template.HTML(post.Body), nil
+		return renderedPost{Body: template.HTML(post.Body)}, nil
 	case state.PostBodyHtmlTemplate:
 		t, err := template.New("body").Parse(post.Body)
 		if err != nil {
-			return "", err
+			return renderedPost{}, err
 		}
-		var body bytes.Buffer
-		if err := t.Execute(&body, post); err != nil {
-			return "", err
+		var body, head bytes.Buffer
+		if err := t.ExecuteTemplate(&body, "body", post); err != nil {
+			return renderedPost{}, err
 		}
-		return template.HTML(body.String()), nil
+		if t.Lookup("headEnd") != nil {
+			if err := t.ExecuteTemplate(&head, "headEnd", post); err != nil {
+				return renderedPost{}, err
+			}
+		}
+		return renderedPost{
+			Body: template.HTML(body.String()),
+			Head: template.HTML(head.String()),
+		}, nil
+
 	default:
-		return "", fmt.Errorf("unsupported post body type %q", post.BodyType)
+		return renderedPost{}, fmt.Errorf("unsupported post body type %q", post.BodyType)
 	}
 }
 

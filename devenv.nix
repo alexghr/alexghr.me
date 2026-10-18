@@ -21,6 +21,8 @@
           pkgs.gh
           pkgs.gcc
           pkgs.sqlite
+          pkgs.watchexec
+          pkgs.vscode-langservers-extracted
           agents.codex
         ];
 
