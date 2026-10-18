@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/alexghr/alexghr.me/internal/state"
 )
@@ -21,6 +22,15 @@ type postsModel struct {
 	model
 	Posts                []state.PostMetadata
 	Page, Next, Previous int
+}
+
+type postModel struct {
+	model
+	Post        state.Post
+	Body        template.HTML
+	Head        template.HTML
+	PublishedAt string
+	UpdatedAt   string
 }
 
 func (h handler) servePosts(w http.ResponseWriter, r *http.Request) {
@@ -87,12 +97,26 @@ func (h handler) servePost(onlyPublic bool) http.Handler {
 			h.renderError(w, r, "internal server error", http.StatusInternalServerError)
 			return
 		}
-		h.renderPostPage(w, r, "post", struct {
-			model
-			Post state.Post
-			Body template.HTML
-			Head template.HTML
-		}{model{InstanceID: h.id, Debug: h.debug, CurrentPage: "post"}, post, tpl.Body, tpl.Head})
+
+		var publishedAt, updatedAt string
+
+		if !post.PublishedAt.IsZero() {
+			publishedAt = post.PublishedAt.Format(time.DateOnly)
+		}
+
+		// 24hr grace period for edits 😅
+		if !post.UpdatedAt.IsZero() && post.UpdatedAt.Sub(post.PublishedAt) > 24*time.Hour {
+			updatedAt = post.UpdatedAt.Format(time.DateOnly)
+		}
+
+		h.renderPostPage(w, r, "post", postModel{
+			model:       model{InstanceID: h.id, Debug: h.debug, CurrentPage: "post"},
+			Post:        post,
+			Body:        tpl.Body,
+			Head:        tpl.Head,
+			PublishedAt: publishedAt,
+			UpdatedAt:   updatedAt,
+		})
 	})
 }
 
