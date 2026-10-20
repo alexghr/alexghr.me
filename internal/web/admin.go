@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/alexghr/alexghr.me/internal/state"
 )
@@ -29,6 +30,7 @@ type adminPageModel struct {
 	model
 	Posts  []adminPost
 	Assets []adminAsset
+	Stats  state.ViewStats
 }
 
 func adminHandler(h handler) http.Handler {
@@ -67,7 +69,14 @@ func (h handler) serveAdmin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m := adminPageModel{model: model{InstanceID: h.id, Debug: h.debug}}
+	now := time.Now().UTC()
+	stats, err := h.store.GetViewStats(r.Context(), now.Add(-7*24*time.Hour), now)
+	if err != nil {
+		h.requestLogger(r).ErrorContext(r.Context(), "load view stats", "error", err)
+		h.renderError(w, r, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	m := adminPageModel{model: model{InstanceID: h.id, Debug: h.debug}, Stats: stats}
 
 	for _, post := range posts {
 		prefix := ""

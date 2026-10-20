@@ -5,6 +5,33 @@ form {
   margin-block-start: 1rem;
 }
 
+.stats table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-block: 1.5rem;
+  table-layout: fixed;
+}
+
+.stats caption {
+  text-align: left;
+  font-weight: bold;
+  margin-block-end: 0.5rem;
+}
+
+.stats th,
+.stats td {
+  padding: 0.5rem;
+  border-bottom: 1px solid rgb(0 0 0 / 0.15);
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.stats th:last-child,
+.stats td:last-child:not([colspan]) {
+  width: 5rem;
+  text-align: right;
+}
+
 .post-dialog-button {
   background: none;
   border: 0;

@@ -1,6 +1,42 @@
 {{define "main"}}
 <h1>Admin page</h1>
 
+<section class="stats">
+  <h2>Stats</h2>
+  <table>
+    <caption>Top 5 pages</caption>
+    <thead><tr><th scope="col">Page</th><th scope="col">Views</th></tr></thead>
+    <tbody>
+      {{range .Stats.Pages}}<tr><td>{{.Value}}</td><td>{{.Count}}</td></tr>
+      {{else}}<tr><td colspan="2">No page views yet.</td></tr>{{end}}
+    </tbody>
+  </table>
+  <table>
+    <caption>Top 5 referrers</caption>
+    <thead><tr><th scope="col">Referrer</th><th scope="col">Views</th></tr></thead>
+    <tbody>
+      {{range .Stats.Referrers}}<tr><td>{{if .Value}}{{.Value}}{{else}}Unknown{{end}}</td><td>{{.Count}}</td></tr>
+      {{else}}<tr><td colspan="2">No page views yet.</td></tr>{{end}}
+    </tbody>
+  </table>
+  <table>
+    <caption>Top 5 countries</caption>
+    <thead><tr><th scope="col">Country</th><th scope="col">Views</th></tr></thead>
+    <tbody>
+      {{range .Stats.Countries}}<tr><td>{{if .Value}}{{.Value}}{{else}}Unknown{{end}}</td><td>{{.Count}}</td></tr>
+      {{else}}<tr><td colspan="2">No page views yet.</td></tr>{{end}}
+    </tbody>
+  </table>
+  <table>
+    <caption>Errors</caption>
+    <thead><tr><th scope="col">Path</th><th scope="col">Errors</th></tr></thead>
+    <tbody>
+      {{range .Stats.Errors}}<tr><td>{{if .Value}}{{.Value}}{{else}}Unknown{{end}}</td><td>{{.Count}}</td></tr>
+      {{else}}<tr><td colspan="2">No errors views yet.</td></tr>{{end}}
+    </tbody>
+  </table>
+</section>
+
 <section>
   <h2>Posts</h2>
 
